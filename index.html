@@ -1,0 +1,405 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cortes de Carne - Realidade Aumentada</title>
+  <style>
+    :root {
+      --primary: #e63946;
+      --secondary: #1d3557;
+      --accent: #f1faee;
+      --glass: rgba(255, 255, 255, 0.1);
+      --glass-dark: rgba(0, 0, 0, 0.6);
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      background-color: #0d1b2a;
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow: hidden;
+      color: white;
+    }
+
+    model-viewer {
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, #1b263b 0%, #0d1b2a 100%);
+    }
+
+    /* Timeline UI overlaying the model-viewer */
+    #overlay-ui {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 400px;
+      z-index: 10;
+      pointer-events: none; /* Allow interaction with model through the gap */
+    }
+
+    .glass-panel {
+      background: var(--glass-dark);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 20px;
+      pointer-events: auto;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .timeline-header {
+      text-align: center;
+    }
+
+    .timeline-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .timeline-status {
+      font-size: 0.8rem;
+      opacity: 0.7;
+      margin-top: 4px;
+    }
+
+    .navigation-controls {
+      display: flex;
+      width: 100%;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .nav-btn:disabled {
+      background: #4a4e69;
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .nav-btn.primary {
+      background: var(--secondary);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    #anim-btn {
+      width: 100%;
+      background: #2a9d8f;
+      color: white;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    #anim-btn.back {
+      background: #f4a261;
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 5px;
+    }
+
+    #progress-fill {
+      height: 100%;
+      background: var(--primary);
+      width: 25%;
+      transition: width 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 0 10px var(--primary);
+    }
+
+    /* Slot for AR functionality */
+    #ar-button {
+      background-color: white;
+      border-radius: 8px;
+      border: none;
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: bold;
+      color: #1d3557;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    /* Instruction hint */
+    #ar-prompt {
+      position: absolute;
+      left: 20px;
+      top: 20px;
+      background: var(--glass-dark);
+      padding: 8px 15px;
+      border-radius: 30px;
+      font-size: 0.8rem;
+      backdrop-filter: blur(5px);
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Model Viewer -->
+  <model-viewer
+    id="meat-viewer"
+    src="modelos/01.glb"
+    alt="Modelo 3D de corte de carne"
+    ar
+    ar-modes="webxr scene-viewer quick-look"
+    camera-controls
+    auto-rotate
+    environment-image="neutral"
+    shadow-intensity="1"
+    exposure="1"
+    touch-action="pan-y"
+  >
+    <!-- Custom AR Button -->
+    <button slot="ar-button" id="ar-button">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2h-12a2 2 0 0 1-2-2v-8z"></path><line x1="12" y1="18" x2="12" y2="18"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+      VER EM RA
+    </button>
+
+    <div id="ar-prompt">Mova o celular para escanear o ambiente</div>
+
+  </model-viewer>
+
+  <!-- UI Overlay moved outside to ensure visibility in all modes -->
+  <div id="overlay-ui">
+    <div class="glass-panel">
+      <div class="timeline-header">
+        <p class="timeline-title" id="cut-name">Corte de Carne 01</p>
+        <p class="timeline-status" id="phase-label">Fase 1 de 4</p>
+      </div>
+
+      <div class="progress-bar-container">
+        <div id="progress-fill"></div>
+      </div>
+
+        <div class="navigation-controls">
+          <button class="nav-btn" id="prev-btn" disabled>
+            ←
+          </button>
+          <button class="nav-btn" id="anim-btn">
+            Pendurar
+          </button>
+          <button class="nav-btn" id="next-btn">
+            →
+          </button>
+        </div>
+    </div>
+  </div>
+
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  
+  <script>
+    const modelViewer = document.getElementById('meat-viewer');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const animBtn = document.getElementById('anim-btn');
+    const phaseLabel = document.getElementById('phase-label');
+    const cutName = document.getElementById('cut-name');
+    const progressFill = document.getElementById('progress-fill');
+
+    let currentIndex = 0;
+    let isHanging = false;
+    let savedTime = 0;
+
+    const models = [
+      { file: 'modelos/01.glb', name: 'Corte de Carne 01' },
+      { file: 'modelos/02.glb', name: 'Corte de Carne 02' },
+      { file: 'modelos/03.glb', name: 'Corte de Carne 03' },
+      { file: 'modelos/04.glb', name: 'Corte de Carne 04' }
+    ];
+
+    function updateModel() {
+      const current = models[currentIndex];
+      
+      // Update UI elements
+      cutName.textContent = current.name;
+      phaseLabel.textContent = `Fase ${currentIndex + 1} de ${models.length}`;
+      progressFill.style.width = `${((currentIndex + 1) / models.length) * 100}%`;
+
+      // Update model source
+      modelViewer.src = current.file;
+
+      // Disable navigation buttons during transition or update their state
+      prevBtn.disabled = currentIndex === 0;
+      nextBtn.disabled = currentIndex === models.length - 1;
+    }
+
+    // Sync animation state when model loads
+    modelViewer.addEventListener('load', () => {
+      // Restore animation state
+      modelViewer.animationLoop = false;
+      
+      if (modelViewer.availableAnimations.length > 0) {
+        modelViewer.animationName = modelViewer.availableAnimations[0];
+      }
+
+      // Sync time and state
+      modelViewer.currentTime = savedTime;
+      
+      if (isHanging) {
+        animBtn.textContent = 'Voltar';
+        animBtn.classList.add('back');
+      } else {
+        animBtn.textContent = 'Pendurar';
+        animBtn.classList.remove('back');
+      }
+      
+      modelViewer.pause(); // Ensure it doesn't start playing automatically
+    });
+
+    function checkAnimStatus(callback) {
+      const check = () => {
+        const current = modelViewer.currentTime;
+        const duration = modelViewer.duration;
+        
+        // Update global saved time
+        savedTime = current;
+
+        // Tolerance for floating point comparison
+        const reached = modelViewer.timeScale > 0 
+          ? current >= duration - 0.05 
+          : current <= 0.05;
+
+        if (reached) {
+          savedTime = modelViewer.timeScale > 0 ? duration : 0;
+          modelViewer.currentTime = savedTime;
+          callback();
+        } else {
+          requestAnimationFrame(check);
+        }
+      };
+      requestAnimationFrame(check);
+    }
+
+    animBtn.addEventListener('click', () => {
+      if (animBtn.disabled) return;
+      animBtn.disabled = true;
+
+      if (!isHanging) {
+        // Play animation forward (single run)
+        modelViewer.animationLoop = false;
+        modelViewer.timeScale = 1;
+        modelViewer.play();
+        
+        checkAnimStatus(() => {
+          isHanging = true;
+          animBtn.textContent = 'Voltar';
+          animBtn.classList.add('back');
+          animBtn.disabled = false;
+        });
+      } else {
+        // Play animation backward (single run)
+        modelViewer.animationLoop = false;
+        modelViewer.timeScale = -1;
+        modelViewer.play();
+
+        checkAnimStatus(() => {
+          isHanging = false;
+          animBtn.textContent = 'Pendurar';
+          animBtn.classList.remove('back');
+          animBtn.disabled = false;
+        });
+      }
+    });
+
+    prevBtn.addEventListener('click', () => {
+      if (currentIndex > 0) {
+        currentIndex--;
+        updateModel();
+      }
+    });
+
+    nextBtn.addEventListener('click', () => {
+      if (currentIndex < models.length - 1) {
+        currentIndex++;
+        updateModel();
+      }
+    });
+
+    // Handle AR errors or lack of support
+    modelViewer.addEventListener('ar-status', (event) => {
+      if (event.detail.status === 'failed') {
+        console.warn('AR Session failed to start');
+      }
+    });
+  </script>
+</body>
+</html>
