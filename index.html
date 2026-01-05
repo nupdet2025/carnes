@@ -114,11 +114,33 @@
     }
 
     .navigation-controls {
-      display: flex;
+      display: grid;
+      grid-template-columns: 1fr 2fr 1fr;
       width: 100%;
-      justify-content: space-between;
       align-items: center;
       gap: 10px;
+    }
+
+    #ar-trigger-btn {
+      grid-column: 1 / span 3;
+      background: white;
+      color: #0d1b2a;
+      border: none;
+      padding: 15px;
+      border-radius: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    #ar-trigger-btn:active {
+      transform: scale(0.98);
     }
 
     .nav-btn {
@@ -260,6 +282,10 @@
           <button class="nav-btn" id="next-btn">
             →
           </button>
+          <button id="ar-trigger-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2h-12a2 2 0 0 1-2-2v-8z"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+            Projetar em Realidade Aumentada
+          </button>
         </div>
     </div>
   </div>
@@ -271,6 +297,7 @@
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
     const animBtn = document.getElementById('anim-btn');
+    const arTriggerBtn = document.getElementById('ar-trigger-btn');
     const phaseLabel = document.getElementById('phase-label');
     const cutName = document.getElementById('cut-name');
     const progressFill = document.getElementById('progress-fill');
@@ -392,6 +419,10 @@
         currentIndex++;
         updateModel();
       }
+    });
+
+    arTriggerBtn.addEventListener('click', () => {
+      modelViewer.activateAR();
     });
 
     // Handle AR errors or lack of support
