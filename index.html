@@ -34,6 +34,7 @@
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       z-index: 100;
+      transition: all 0.2s ease;
     }
     #play-btn:active {
       background-color: #0056b3;
@@ -45,6 +46,39 @@
     #play-btn.reverse:active {
       background-color: #e76f51;
     }
+
+    .nav-side-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      font-size: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      z-index: 100;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transition: all 0.2s ease;
+    }
+    .nav-side-btn:active {
+      transform: translateY(-50%) scale(0.9);
+      background-color: #0056b3;
+    }
+    .nav-side-btn:disabled {
+      background-color: #ccc;
+      opacity: 0.5;
+      cursor: not-allowed;
+      display: none; /* Hide when not available */
+    }
+    #prev-btn { left: 20px; }
+    #next-btn { right: 20px; }
   </style>
 </head>
 <body>
@@ -60,6 +94,8 @@
     camera-orbit="45deg 55deg 2.5m"
     animation-loop="false"
   >
+    <button id="prev-btn" class="nav-side-btn" style="display: none;">←</button>
+    <button id="next-btn" class="nav-side-btn">→</button>
     <button id="play-btn">Rodar Animação</button>
   </model-viewer>
 
@@ -86,14 +122,63 @@
     // Initialize AR check
     checkARSupport();
 
-    // Animation Logic
+    // App State
+    let currentIndex = 0;
     let isAtEnd = false;
-    const playBtn = document.getElementById('play-btn');
+    let sharedOrbit = "45deg 55deg 2.5m";
+    const models = [
+      'modelos/01.glb',
+      'modelos/02.glb',
+      'modelos/03.glb',
+      'modelos/04.glb'
+    ];
 
+    const playBtn = document.getElementById('play-btn');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+
+    function updateNavButtons() {
+      prevBtn.style.display = currentIndex === 0 ? 'none' : 'flex';
+      nextBtn.style.display = currentIndex === models.length - 1 ? 'none' : 'flex';
+    }
+
+    function switchModel(newIndex) {
+      if (newIndex < 0 || newIndex >= models.length) return;
+      
+      // Save current orbit
+      sharedOrbit = modelViewer.getCameraOrbit().toString();
+      
+      currentIndex = newIndex;
+      modelViewer.src = models[currentIndex];
+      updateNavButtons();
+    }
+
+    modelViewer.addEventListener('load', () => {
+      // Sync Rotation
+      modelViewer.cameraOrbit = sharedOrbit;
+      
+      // Sync Animation State
+      if (isAtEnd) {
+        // Force to the end
+        if (modelViewer.duration > 0) {
+          modelViewer.currentTime = modelViewer.duration;
+        } else {
+          // If duration is not yet available, wait a bit
+          const checkDuration = setInterval(() => {
+            if (modelViewer.duration > 0) {
+              modelViewer.currentTime = modelViewer.duration;
+              clearInterval(checkDuration);
+            }
+          }, 50);
+        }
+      } else {
+        modelViewer.currentTime = 0;
+      }
+    });
+
+    // Animation Logic
     playBtn.addEventListener('click', () => {
       if (playBtn.disabled) return;
-      
-      modelViewer.animationLoop = false;
       
       if (!isAtEnd) {
         // Play Forward
@@ -101,18 +186,18 @@
         modelViewer.timeScale = 1;
         modelViewer.play({ repetitions: 1 });
         
-        // Disable temporarily to avoid clicks during animation
         playBtn.disabled = true;
         
-        // Wait for animation to finish (heuristic or duration based)
+        // Use animation frame check or timeout for completion
+        const duration = modelViewer.duration || 1;
         setTimeout(() => {
           isAtEnd = true;
           playBtn.textContent = 'Voltar Animação';
           playBtn.classList.add('reverse');
           playBtn.disabled = false;
-        }, (modelViewer.duration || 1) * 1000);
+        }, duration * 1000);
       } else {
-        // Instant Reset to Frame 1 (Initial State)
+        // Instant Reset
         modelViewer.pause();
         modelViewer.currentTime = 0;
         
@@ -121,6 +206,12 @@
         playBtn.classList.remove('reverse');
       }
     });
+
+    prevBtn.addEventListener('click', () => switchModel(currentIndex - 1));
+    nextBtn.addEventListener('click', () => switchModel(currentIndex + 1));
+
+    // Initial button state
+    updateNavButtons();
   </script>
 </body>
 </html>
