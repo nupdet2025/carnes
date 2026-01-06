@@ -21,6 +21,24 @@
       position: relative;
       background-color: #e0e0e0;
     }
+    /* Main display viewer */
+    #main-viewer {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+    /* Hidden sync viewers */
+    .sync-viewer {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+      visibility: hidden;
+    }
     #controls-container {
       position: absolute;
       top: 0;
@@ -32,31 +50,6 @@
     }
     #controls-container button {
       pointer-events: auto;
-    }
-    model-viewer {
-      width: 100%;
-      height: 100%;
-      position: absolute;
-      top: 0;
-      left: 0;
-      opacity: 0;
-      pointer-events: none;
-      visibility: hidden;
-      transition: opacity 0.3s ease;
-    }
-    model-viewer.active {
-      opacity: 1;
-      pointer-events: auto;
-      visibility: visible;
-    }
-    #controls-container {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 2147483647; /* Max z-index for AR overlay */
     }
     #play-btn {
       position: absolute;
@@ -71,7 +64,6 @@
       border: none;
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      z-index: 1000;
       transition: all 0.2s ease;
     }
     #play-btn:active {
@@ -98,7 +90,6 @@
       font-size: 20px;
       font-weight: bold;
       cursor: pointer;
-      z-index: 1000;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -115,53 +106,47 @@
 </head>
 <body>
   <div class="viewer-container">
-    <model-viewer id="mv-0" src="modelos/01.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false" class="active"></model-viewer>
-    <model-viewer id="mv-1" src="modelos/02.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false"></model-viewer>
-    <model-viewer id="mv-2" src="modelos/03.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false"></model-viewer>
-    <model-viewer id="mv-3" src="modelos/04.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false"></model-viewer>
+    <!-- The only viewer the user sees and interacts with -->
+    <model-viewer id="main-viewer" src="modelos/01.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
+      <div id="controls-container">
+        <button id="prev-btn" class="nav-side-btn" style="display: none;">←</button>
+        <button id="next-btn" class="nav-side-btn">→</button>
+        <button id="play-btn">Pendurar</button>
+      </div>
+    </model-viewer>
 
-    <div id="controls-container">
-      <button id="prev-btn" class="nav-side-btn" style="display: none;">←</button>
-      <button id="next-btn" class="nav-side-btn">→</button>
-      <button id="play-btn">Pendurar</button>
-    </div>
+    <!-- Background viewers used only for time sync -->
+    <model-viewer class="sync-viewer" id="sync-0" src="modelos/01.glb" animation-loop="false"></model-viewer>
+    <model-viewer class="sync-viewer" id="sync-1" src="modelos/02.glb" animation-loop="false"></model-viewer>
+    <model-viewer class="sync-viewer" id="sync-2" src="modelos/03.glb" animation-loop="false"></model-viewer>
+    <model-viewer class="sync-viewer" id="sync-3" src="modelos/04.glb" animation-loop="false"></model-viewer>
   </div>
 
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <script>
-    const viewers = [
-      document.getElementById('mv-0'),
-      document.getElementById('mv-1'),
-      document.getElementById('mv-2'),
-      document.getElementById('mv-3')
+    const mainViewer = document.getElementById('main-viewer');
+    const syncViewers = [
+      document.getElementById('sync-0'),
+      document.getElementById('sync-1'),
+      document.getElementById('sync-2'),
+      document.getElementById('sync-3')
     ];
+    const modelPaths = ['modelos/01.glb', 'modelos/02.glb', 'modelos/03.glb', 'modelos/04.glb'];
+    
     let currentIndex = 0;
     let isAtEnd = false;
+    let sharedOrbit = "45deg 55deg 2.5m";
 
     const playBtn = document.getElementById('play-btn');
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
-    const controlsContainer = document.getElementById('controls-container');
 
     function updateUI() {
-      const activeViewer = viewers[currentIndex];
-
-      // Toggle visibility
-      viewers.forEach((v, i) => {
-        if (i === currentIndex) {
-          v.classList.add('active');
-          // Move controls into the active viewer for AR overlay persistence
-          v.appendChild(controlsContainer);
-        } else {
-          v.classList.remove('active');
-        }
-      });
-
       // Update Nav Buttons
       prevBtn.style.display = currentIndex === 0 ? 'none' : 'flex';
-      nextBtn.style.display = currentIndex === viewers.length - 1 ? 'none' : 'flex';
+      nextBtn.style.display = currentIndex === modelPaths.length - 1 ? 'none' : 'flex';
 
-      // Update Play Button
+      // Update Play Button text
       if (isAtEnd) {
         playBtn.textContent = 'Voltar';
         playBtn.classList.add('reverse');
@@ -172,37 +157,47 @@
       playBtn.disabled = false;
     }
 
-    // BROADCAST ROTATION
-    viewers.forEach((v, i) => {
-      v.addEventListener('camera-change', (event) => {
-        if (i !== currentIndex) return; // Only broadcast from active model
-        
-        const orbit = v.getCameraOrbit().toString();
-        viewers.forEach((otherViewer, otherIndex) => {
-          if (otherIndex !== currentIndex) {
-            otherViewer.cameraOrbit = orbit;
-          }
-        });
-      });
+    // Sync rotation from main to all hidden ones
+    mainViewer.addEventListener('camera-change', () => {
+      sharedOrbit = mainViewer.getCameraOrbit().toString();
     });
 
-    // BROADCAST ANIMATION
+    // When main finishes loading a new model (during switch)
+    mainViewer.addEventListener('load', () => {
+      // Restore rotation
+      mainViewer.cameraOrbit = sharedOrbit;
+      
+      // Force sync with background state
+      const targetSync = syncViewers[currentIndex];
+      if (isAtEnd) {
+        mainViewer.currentTime = mainViewer.duration;
+        mainViewer.pause();
+      } else if (targetSync.currentTime > 0) {
+        // If background is currently animating, jump to match it
+        mainViewer.currentTime = targetSync.currentTime;
+        mainViewer.play({ repetitions: 1 });
+      } else {
+        mainViewer.currentTime = 0;
+        mainViewer.pause();
+      }
+    });
+
+    // ANIMATION BROADCAST
     playBtn.addEventListener('click', () => {
       if (playBtn.disabled) return;
       playBtn.disabled = true;
 
       if (!isAtEnd) {
-        // Play all 4 Forward
-        viewers.forEach(v => {
+        // Play ALL (Main + 4 Sync)
+        [mainViewer, ...syncViewers].forEach(v => {
           v.currentTime = 0;
           v.timeScale = 1;
           v.play({ repetitions: 1 });
         });
 
-        // Monitor active viewer for completion
-        const activeViewer = viewers[currentIndex];
+        // Monitor completion on main
         const checkEnd = () => {
-          if (activeViewer.currentTime >= activeViewer.duration - 0.01) {
+          if (mainViewer.currentTime >= mainViewer.duration - 0.01) {
             isAtEnd = true;
             updateUI();
           } else if (!isAtEnd) {
@@ -211,8 +206,8 @@
         };
         checkEnd();
       } else {
-        // Reset all 4 simultaneously
-        viewers.forEach(v => {
+        // Reset ALL
+        [mainViewer, ...syncViewers].forEach(v => {
           v.pause();
           v.currentTime = 0;
         });
@@ -221,19 +216,16 @@
       }
     });
 
-    prevBtn.addEventListener('click', () => {
-      if (currentIndex > 0) {
-        currentIndex--;
-        updateUI();
-      }
-    });
+    // NAVIGATION (Update src only - keeps AR session alive)
+    function switchModel(newIndex) {
+      if (newIndex < 0 || newIndex >= modelPaths.length) return;
+      currentIndex = newIndex;
+      mainViewer.src = modelPaths[currentIndex];
+      updateUI();
+    }
 
-    nextBtn.addEventListener('click', () => {
-      if (currentIndex < viewers.length - 1) {
-        currentIndex++;
-        updateUI();
-      }
-    });
+    prevBtn.addEventListener('click', () => switchModel(currentIndex - 1));
+    nextBtn.addEventListener('click', () => switchModel(currentIndex + 1));
 
     // Initial State
     updateUI();
