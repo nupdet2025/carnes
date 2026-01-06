@@ -112,18 +112,13 @@
           playBtn.disabled = false;
         }, (modelViewer.duration || 1) * 1000);
       } else {
-        // Play Backward
-        modelViewer.timeScale = -1;
-        modelViewer.play({ repetitions: 1 });
+        // Instant Reset to Frame 1 (Initial State)
+        modelViewer.pause();
+        modelViewer.currentTime = 0;
         
-        playBtn.disabled = true;
-        
-        setTimeout(() => {
-          isAtEnd = false;
-          playBtn.textContent = 'Rodar Animação';
-          playBtn.classList.remove('reverse');
-          playBtn.disabled = false;
-        }, (modelViewer.duration || 1) * 1000);
+        isAtEnd = false;
+        playBtn.textContent = 'Rodar Animação';
+        playBtn.classList.remove('reverse');
       }
     });
   </script>
