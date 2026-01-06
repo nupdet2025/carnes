@@ -39,6 +39,12 @@
       background-color: #0056b3;
       transform: translateX(-50%) scale(0.95);
     }
+    #play-btn.reverse {
+      background-color: #f4a261;
+    }
+    #play-btn.reverse:active {
+      background-color: #e76f51;
+    }
   </style>
 </head>
 <body>
@@ -81,10 +87,44 @@
     checkARSupport();
 
     // Animation Logic
+    let isAtEnd = false;
     const playBtn = document.getElementById('play-btn');
+
     playBtn.addEventListener('click', () => {
-      modelViewer.currentTime = 0;
-      modelViewer.play({ repetitions: 1 });
+      if (playBtn.disabled) return;
+      
+      modelViewer.animationLoop = false;
+      
+      if (!isAtEnd) {
+        // Play Forward
+        modelViewer.currentTime = 0;
+        modelViewer.timeScale = 1;
+        modelViewer.play({ repetitions: 1 });
+        
+        // Disable temporarily to avoid clicks during animation
+        playBtn.disabled = true;
+        
+        // Wait for animation to finish (heuristic or duration based)
+        setTimeout(() => {
+          isAtEnd = true;
+          playBtn.textContent = 'Voltar Animação';
+          playBtn.classList.add('reverse');
+          playBtn.disabled = false;
+        }, (modelViewer.duration || 1) * 1000);
+      } else {
+        // Play Backward
+        modelViewer.timeScale = -1;
+        modelViewer.play({ repetitions: 1 });
+        
+        playBtn.disabled = true;
+        
+        setTimeout(() => {
+          isAtEnd = false;
+          playBtn.textContent = 'Rodar Animação';
+          playBtn.classList.remove('reverse');
+          playBtn.disabled = false;
+        }, (modelViewer.duration || 1) * 1000);
+      }
     });
   </script>
 </body>
