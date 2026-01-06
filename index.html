@@ -20,6 +20,7 @@
       height: 80%;
       position: relative;
       background-color: #e0e0e0;
+      overflow: hidden;
     }
     /* Main display viewer */
     #main-viewer {
@@ -28,16 +29,17 @@
       position: absolute;
       top: 0;
       left: 0;
-      z-index: 1;
+      z-index: 10;
     }
-    /* Hidden sync viewers */
+    /* Sync viewers: Active but off-screen to prevent browser throttling */
     .sync-viewer {
       position: absolute;
-      width: 1px;
-      height: 1px;
-      opacity: 0;
+      width: 300px;
+      height: 300px;
+      top: 0;
+      left: -10000px; /* Way off-screen */
+      opacity: 0.01;
       pointer-events: none;
-      visibility: hidden;
     }
     #controls-container {
       position: absolute;
@@ -106,7 +108,7 @@
 </head>
 <body>
   <div class="viewer-container">
-    <!-- The only viewer the user sees and interacts with -->
+    <!-- Main Viewer: Persistent for UI and AR -->
     <model-viewer id="main-viewer" src="modelos/01.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
       <div id="controls-container">
         <button id="prev-btn" class="nav-side-btn" style="display: none;">←</button>
@@ -115,7 +117,7 @@
       </div>
     </model-viewer>
 
-    <!-- Background viewers used only for time sync -->
+    <!-- 4 Sync Viewers: Off-screen but active to keep animations running -->
     <model-viewer class="sync-viewer" id="sync-0" src="modelos/01.glb" animation-loop="false"></model-viewer>
     <model-viewer class="sync-viewer" id="sync-1" src="modelos/02.glb" animation-loop="false"></model-viewer>
     <model-viewer class="sync-viewer" id="sync-2" src="modelos/03.glb" animation-loop="false"></model-viewer>
@@ -142,11 +144,9 @@
     const nextBtn = document.getElementById('next-btn');
 
     function updateUI() {
-      // Update Nav Buttons
       prevBtn.style.display = currentIndex === 0 ? 'none' : 'flex';
       nextBtn.style.display = currentIndex === modelPaths.length - 1 ? 'none' : 'flex';
 
-      // Update Play Button text
       if (isAtEnd) {
         playBtn.textContent = 'Voltar';
         playBtn.classList.add('reverse');
@@ -157,47 +157,70 @@
       playBtn.disabled = false;
     }
 
-    // Sync rotation from main to all hidden ones
+    // BROADCAST ROTATION
     mainViewer.addEventListener('camera-change', () => {
       sharedOrbit = mainViewer.getCameraOrbit().toString();
+      syncViewers.forEach(v => {
+        v.cameraOrbit = sharedOrbit;
+      });
     });
 
-    // When main finishes loading a new model (during switch)
-    mainViewer.addEventListener('load', () => {
-      // Restore rotation
-      mainViewer.cameraOrbit = sharedOrbit;
+    // HEARTBEAT SYNC: Force main viewer to match the background source of truth
+    function syncStep() {
+      const activeSync = syncViewers[currentIndex];
       
-      // Force sync with background state
-      const targetSync = syncViewers[currentIndex];
+      // If we are meant to be pendurado, ensure it.
+      if (isAtEnd) {
+         if (mainViewer.duration > 0 && Math.abs(mainViewer.currentTime - mainViewer.duration) > 0.05) {
+            mainViewer.currentTime = mainViewer.duration;
+            mainViewer.pause();
+         }
+      } 
+      // Synchronize animation progress live
+      else if (activeSync.currentTime > 0 && activeSync.paused === false) {
+          if (Math.abs(mainViewer.currentTime - activeSync.currentTime) > 0.2) {
+              mainViewer.currentTime = activeSync.currentTime;
+          }
+      }
+      
+      requestAnimationFrame(syncStep);
+    }
+    syncStep();
+
+    mainViewer.addEventListener('load', () => {
+      mainViewer.cameraOrbit = sharedOrbit;
+      const activeSync = syncViewers[currentIndex];
+      
       if (isAtEnd) {
         mainViewer.currentTime = mainViewer.duration;
         mainViewer.pause();
-      } else if (targetSync.currentTime > 0) {
-        // If background is currently animating, jump to match it
-        mainViewer.currentTime = targetSync.currentTime;
-        mainViewer.play({ repetitions: 1 });
       } else {
-        mainViewer.currentTime = 0;
-        mainViewer.pause();
+        mainViewer.currentTime = activeSync.currentTime;
+        if (activeSync.currentTime > 0 && !activeSync.paused) {
+          mainViewer.play({ repetitions: 1 });
+        } else {
+          mainViewer.pause();
+        }
       }
     });
 
-    // ANIMATION BROADCAST
+    // SIMULTANEOUS BROADCAST
     playBtn.addEventListener('click', () => {
       if (playBtn.disabled) return;
       playBtn.disabled = true;
 
+      const allViewers = [mainViewer, ...syncViewers];
+
       if (!isAtEnd) {
-        // Play ALL (Main + 4 Sync)
-        [mainViewer, ...syncViewers].forEach(v => {
+        // Pendurar todos
+        allViewers.forEach(v => {
           v.currentTime = 0;
-          v.timeScale = 1;
           v.play({ repetitions: 1 });
         });
 
-        // Monitor completion on main
+        const activeSync = syncViewers[currentIndex];
         const checkEnd = () => {
-          if (mainViewer.currentTime >= mainViewer.duration - 0.01) {
+          if (activeSync.currentTime >= activeSync.duration - 0.01) {
             isAtEnd = true;
             updateUI();
           } else if (!isAtEnd) {
@@ -206,8 +229,8 @@
         };
         checkEnd();
       } else {
-        // Reset ALL
-        [mainViewer, ...syncViewers].forEach(v => {
+        // Voltar todos
+        allViewers.forEach(v => {
           v.pause();
           v.currentTime = 0;
         });
@@ -216,7 +239,6 @@
       }
     });
 
-    // NAVIGATION (Update src only - keeps AR session alive)
     function switchModel(newIndex) {
       if (newIndex < 0 || newIndex >= modelPaths.length) return;
       currentIndex = newIndex;
@@ -227,7 +249,6 @@
     prevBtn.addEventListener('click', () => switchModel(currentIndex - 1));
     nextBtn.addEventListener('click', () => switchModel(currentIndex + 1));
 
-    // Initial State
     updateUI();
   </script>
 </body>
