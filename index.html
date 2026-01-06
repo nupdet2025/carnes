@@ -18,19 +18,26 @@
       width: 100%;
       height: 80%;
       background-color: #f0f0f0;
+      position: relative;
     }
     #play-btn {
-      margin-top: 20px;
-      padding: 10px 20px;
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 24px;
       font-size: 16px;
       cursor: pointer;
       background-color: #007bff;
       color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 100;
     }
     #play-btn:active {
       background-color: #0056b3;
+      transform: translateX(-50%) scale(0.95);
     }
   </style>
 </head>
@@ -46,9 +53,9 @@
     camera-controls
     camera-orbit="45deg 55deg 2.5m"
     animation-loop="false"
-  ></model-viewer>
-
-  <button id="play-btn">Rodar Animação</button>
+  >
+    <button id="play-btn">Rodar Animação</button>
+  </model-viewer>
 
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <script>
