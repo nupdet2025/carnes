@@ -13,12 +13,27 @@
       justify-content: center;
       align-items: center;
       font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+    }
+    .viewer-container {
+      width: 100%;
+      height: 80%;
+      position: relative;
+      background-color: #e0e0e0;
     }
     model-viewer {
       width: 100%;
-      height: 80%;
-      background-color: #f0f0f0;
-      position: relative;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    model-viewer.active {
+      opacity: 1;
+      pointer-events: auto;
     }
     #play-btn {
       position: absolute;
@@ -33,7 +48,7 @@
       border: none;
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      z-index: 100;
+      z-index: 1000;
       transition: all 0.2s ease;
     }
     #play-btn:active {
@@ -60,7 +75,7 @@
       font-size: 20px;
       font-weight: bold;
       cursor: pointer;
-      z-index: 100;
+      z-index: 1000;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -71,147 +86,127 @@
       transform: translateY(-50%) scale(0.9);
       background-color: #0056b3;
     }
-    .nav-side-btn:disabled {
-      background-color: #ccc;
-      opacity: 0.5;
-      cursor: not-allowed;
-      display: none; /* Hide when not available */
-    }
     #prev-btn { left: 20px; }
     #next-btn { right: 20px; }
   </style>
 </head>
 <body>
-  <model-viewer
-    id="model-viewer"
-    src="modelos/01.glb"
-    ios-src="https://modelviewer.dev/shared-assets/models/Astronaut.usdz"
-    alt="A 3D model of an astronaut"
-    ar
-    ar-modes="webxr scene-viewer quick-look"
-    auto-rotate
-    camera-controls
-    camera-orbit="45deg 55deg 2.5m"
-    animation-loop="false"
-  >
+  <div class="viewer-container">
+    <model-viewer id="mv-0" src="modelos/01.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false" class="active"></model-viewer>
+    <model-viewer id="mv-1" src="modelos/02.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false"></model-viewer>
+    <model-viewer id="mv-2" src="modelos/03.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false"></model-viewer>
+    <model-viewer id="mv-3" src="modelos/04.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false"></model-viewer>
+
     <button id="prev-btn" class="nav-side-btn" style="display: none;">←</button>
     <button id="next-btn" class="nav-side-btn">→</button>
     <button id="play-btn">Rodar Animação</button>
-  </model-viewer>
+  </div>
 
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <script>
-    const modelViewer = document.querySelector('model-viewer');
-
-    // Check WebXR support to enable built-in AR button
-    async function checkARSupport() {
-      if (navigator.xr) {
-        try {
-          const isSupported = await navigator.xr.isSessionSupported('immersive-ar');
-          if (!isSupported) {
-            modelViewer.removeAttribute('ar');
-          }
-        } catch (error) {
-          modelViewer.removeAttribute('ar');
-        }
-      } else {
-        modelViewer.removeAttribute('ar');
-      }
-    }
-
-    // Initialize AR check
-    checkARSupport();
-
-    // App State
+    const viewers = [
+      document.getElementById('mv-0'),
+      document.getElementById('mv-1'),
+      document.getElementById('mv-2'),
+      document.getElementById('mv-3')
+    ];
     let currentIndex = 0;
     let isAtEnd = false;
-    let sharedOrbit = "45deg 55deg 2.5m";
-    const models = [
-      'modelos/01.glb',
-      'modelos/02.glb',
-      'modelos/03.glb',
-      'modelos/04.glb'
-    ];
 
     const playBtn = document.getElementById('play-btn');
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
 
-    function updateNavButtons() {
-      prevBtn.style.display = currentIndex === 0 ? 'none' : 'flex';
-      nextBtn.style.display = currentIndex === models.length - 1 ? 'none' : 'flex';
-    }
-
-    function switchModel(newIndex) {
-      if (newIndex < 0 || newIndex >= models.length) return;
-      
-      // Save current orbit
-      sharedOrbit = modelViewer.getCameraOrbit().toString();
-      
-      currentIndex = newIndex;
-      modelViewer.src = models[currentIndex];
-      updateNavButtons();
-    }
-
-    modelViewer.addEventListener('load', () => {
-      // Sync Rotation
-      modelViewer.cameraOrbit = sharedOrbit;
-      
-      // Sync Animation State
-      if (isAtEnd) {
-        // Force to the end
-        if (modelViewer.duration > 0) {
-          modelViewer.currentTime = modelViewer.duration;
+    function updateUI() {
+      // Toggle visibility
+      viewers.forEach((v, i) => {
+        if (i === currentIndex) {
+          v.classList.add('active');
         } else {
-          // If duration is not yet available, wait a bit
-          const checkDuration = setInterval(() => {
-            if (modelViewer.duration > 0) {
-              modelViewer.currentTime = modelViewer.duration;
-              clearInterval(checkDuration);
-            }
-          }, 50);
+          v.classList.remove('active');
         }
-      } else {
-        modelViewer.currentTime = 0;
-      }
-    });
+      });
 
-    // Animation Logic
-    playBtn.addEventListener('click', () => {
-      if (playBtn.disabled) return;
-      
-      if (!isAtEnd) {
-        // Play Forward
-        modelViewer.currentTime = 0;
-        modelViewer.timeScale = 1;
-        modelViewer.play({ repetitions: 1 });
-        
-        playBtn.disabled = true;
-        
-        // Use animation frame check or timeout for completion
-        const duration = modelViewer.duration || 1;
-        setTimeout(() => {
-          isAtEnd = true;
-          playBtn.textContent = 'Voltar Animação';
-          playBtn.classList.add('reverse');
-          playBtn.disabled = false;
-        }, duration * 1000);
+      // Update Nav Buttons
+      prevBtn.style.display = currentIndex === 0 ? 'none' : 'flex';
+      nextBtn.style.display = currentIndex === viewers.length - 1 ? 'none' : 'flex';
+
+      // Update Play Button
+      if (isAtEnd) {
+        playBtn.textContent = 'Voltar Animação';
+        playBtn.classList.add('reverse');
       } else {
-        // Instant Reset
-        modelViewer.pause();
-        modelViewer.currentTime = 0;
-        
-        isAtEnd = false;
         playBtn.textContent = 'Rodar Animação';
         playBtn.classList.remove('reverse');
       }
+      playBtn.disabled = false;
+    }
+
+    // BROADCAST ROTATION
+    viewers.forEach((v, i) => {
+      v.addEventListener('camera-change', (event) => {
+        if (i !== currentIndex) return; // Only broadcast from active model
+        
+        const orbit = v.getCameraOrbit().toString();
+        viewers.forEach((otherViewer, otherIndex) => {
+          if (otherIndex !== currentIndex) {
+            otherViewer.cameraOrbit = orbit;
+          }
+        });
+      });
     });
 
-    prevBtn.addEventListener('click', () => switchModel(currentIndex - 1));
-    nextBtn.addEventListener('click', () => switchModel(currentIndex + 1));
+    // BROADCAST ANIMATION
+    playBtn.addEventListener('click', () => {
+      if (playBtn.disabled) return;
+      playBtn.disabled = true;
 
-    // Initial button state
-    updateNavButtons();
+      if (!isAtEnd) {
+        // Play all 4 Forward
+        viewers.forEach(v => {
+          v.currentTime = 0;
+          v.timeScale = 1;
+          v.play({ repetitions: 1 });
+        });
+
+        // Monitor active viewer for completion
+        const activeViewer = viewers[currentIndex];
+        const checkEnd = () => {
+          if (activeViewer.currentTime >= activeViewer.duration - 0.01) {
+            isAtEnd = true;
+            updateUI();
+          } else if (!isAtEnd) {
+            requestAnimationFrame(checkEnd);
+          }
+        };
+        checkEnd();
+      } else {
+        // Reset all 4 simultaneously
+        viewers.forEach(v => {
+          v.pause();
+          v.currentTime = 0;
+        });
+        isAtEnd = false;
+        updateUI();
+      }
+    });
+
+    prevBtn.addEventListener('click', () => {
+      if (currentIndex > 0) {
+        currentIndex--;
+        updateUI();
+      }
+    });
+
+    nextBtn.addEventListener('click', () => {
+      if (currentIndex < viewers.length - 1) {
+        currentIndex++;
+        updateUI();
+      }
+    });
+
+    // Initial State
+    updateUI();
   </script>
 </body>
 </html>
