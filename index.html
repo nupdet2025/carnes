@@ -106,7 +106,7 @@
 <body>
   <div class="viewer-container">
     <!-- Viewer 0 -->
-    <model-viewer id="mv-0" src="modelos/01.glb" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false" class="active">
+    <model-viewer id="mv-0" src="modelos/01.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false" class="active">
       <div class="controls-container">
         <button class="nav-btn prev-btn" style="display: none;">←</button>
         <button class="nav-btn next-btn">→</button>
@@ -115,7 +115,7 @@
     </model-viewer>
 
     <!-- Viewer 1 -->
-    <model-viewer id="mv-1" src="modelos/02.glb" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
+    <model-viewer id="mv-1" src="modelos/02.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
       <div class="controls-container">
         <button class="nav-btn prev-btn">←</button>
         <button class="nav-btn next-btn">→</button>
@@ -124,7 +124,7 @@
     </model-viewer>
 
     <!-- Viewer 2 -->
-    <model-viewer id="mv-2" src="modelos/03.glb" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
+    <model-viewer id="mv-2" src="modelos/03.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
       <div class="controls-container">
         <button class="nav-btn prev-btn">←</button>
         <button class="nav-btn next-btn">→</button>
@@ -133,7 +133,7 @@
     </model-viewer>
 
     <!-- Viewer 3 -->
-    <model-viewer id="mv-3" src="modelos/04.glb" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
+    <model-viewer id="mv-3" src="modelos/04.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
       <div class="controls-container">
         <button class="nav-btn prev-btn">←</button>
         <button class="nav-btn next-btn" style="display: none;">→</button>
@@ -144,6 +144,9 @@
 
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <script>
+    // Model Paths for AR navigation source-swapping
+    const modelPaths = ['modelos/01.glb', 'modelos/02.glb', 'modelos/03.glb', 'modelos/04.glb'];
+    
     const viewers = [
       document.getElementById('mv-0'),
       document.getElementById('mv-1'),
@@ -200,16 +203,54 @@
       });
     });
 
-    // PURE 3D NAVIGATION HANDLER
+    // HYBRID NAVIGATION HANDLER (AR SRC SWAP + 2D TOGGLE)
     function switchModel(newIndex) {
-      if (newIndex < 0 || newIndex >= viewers.length) return;
+      if (newIndex < 0 || newIndex >= modelPaths.length) return;
       
-      // 2D MODE ONLY: Toggle Viewer Visibility (Standard Multi-Viewer behavior)
-      currentIndex = newIndex;
-      // Switching models now PERSISTS state logic (User Request)
-      // isAtEnd = false; <--- Removed to keep "Voltar" active
-      updateUI();
+      const activeViewer = viewers[currentIndex];
+      // Check if we are currently presenting AR
+      const isAR = activeViewer.getAttribute('ar-status') === 'presenting';
+
+      if (isAR) {
+        // AR MODE: Swap SRC on the ACTIVE viewer to keep session alive
+        activeViewer.src = modelPaths[newIndex];
+        currentIndex = newIndex;
+        
+        // PERSISTENCE CHECK:
+        // Unlike 2D (where background viewers already played), 
+        // AR loads a FRESH model src. We must enforce the state manually.
+        if (isAtEnd) {
+           activeViewer.currentTime = 0;
+           activeViewer.play({ repetitions: 1 });
+        } else {
+           activeViewer.pause();
+           activeViewer.currentTime = 0;
+        }
+
+        updateUI();
+        
+      } else {
+        // 2D MODE: Toggle Viewer Visibility (Standard Multi-Viewer behavior)
+        currentIndex = newIndex;
+        // PERSISTENCE: logic maintained (we do NOT reset isAtEnd)
+        // Background viewers are already synced via Global Broadcast
+        updateUI();
+      }
     }
+
+    // AR SESSION RESTORATION (The "Cleanup" phase)
+    viewers.forEach((v, index) => {
+      v.addEventListener('ar-status', (event) => {
+        if (event.detail.status === 'not-presenting') {
+          // User exited AR. 
+          // 1. Revert the viewer's SRC to its original model
+          v.src = modelPaths[index];
+          
+          // 2. Ensure the 2D view shows the model the user was looking at in AR
+          updateUI();
+        }
+      });
+    });
 
     // STRICT GLOBAL SYNC - PLAY/RESET HANDLER
     playBtns.forEach(btn => {
@@ -254,7 +295,7 @@
         });
     });
 
-    // NAVIGATION CLICKS
+    // NAVIGATION CLICKS - Wired to Hybrid Switch Logic
     prevBtns.forEach(btn => {
       btn.addEventListener('click', () => switchModel(currentIndex - 1));
     });
