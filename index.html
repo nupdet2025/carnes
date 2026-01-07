@@ -163,16 +163,23 @@
     const nextBtns = document.querySelectorAll('.next-btn');
 
     function updateUI() {
-      // 2D Visibility Toggle (Standard Multi-Viewer)
-      viewers.forEach((v, i) => {
-        if (i === currentIndex) {
-          v.classList.add('active');
-        } else {
-          v.classList.remove('active');
-        }
-      });
+      // CHECK FOR ACTIVE AR
+      const presentingViewer = viewers.find(v => v.getAttribute('ar-status') === 'presenting');
+      
+      // 1. VISIBILITY TOGGLE (Only if NOT in AR)
+      // If we are in AR, we MUST keep the presenting viewer active/visible so the overlay stays.
+      if (!presentingViewer) {
+        viewers.forEach((v, i) => {
+          if (i === currentIndex) {
+            v.classList.add('active');
+          } else {
+            v.classList.remove('active');
+          }
+        });
+      }
 
-      // Update Text/State on ALL duplicate buttons
+      // 2. UPDATE BUTTON STATES (On ALL duplicates)
+      // We update ALL sets so that if we exit AR, the 2D buttons are ready.
       playBtns.forEach(btn => {
         btn.disabled = false;
         if (isAtEnd) {
@@ -184,7 +191,7 @@
         }
       });
 
-      // Update Visibility of Navigation arrows on ALL duplicate sets
+      // Update Navigation Arrows
       prevBtns.forEach(btn => btn.style.display = currentIndex === 0 ? 'none' : 'flex');
       nextBtns.forEach(btn => btn.style.display = currentIndex === viewers.length - 1 ? 'none' : 'flex');
     }
@@ -207,33 +214,32 @@
     function switchModel(newIndex) {
       if (newIndex < 0 || newIndex >= modelPaths.length) return;
       
-      const activeViewer = viewers[currentIndex];
-      // Check if we are currently presenting AR
-      const isAR = activeViewer.getAttribute('ar-status') === 'presenting';
+      // Detect if ANY viewer is currently presenting AR
+      const presentingViewer = viewers.find(v => v.getAttribute('ar-status') === 'presenting');
 
-      if (isAR) {
-        // AR MODE: Swap SRC on the ACTIVE viewer to keep session alive
-        activeViewer.src = modelPaths[newIndex];
+      if (presentingViewer) {
+        // AR MODE: Swap SRC on the **PRESENTING** viewer
+        // Must target the viewer that is actually running the session!
+        presentingViewer.src = modelPaths[newIndex];
+        
+        // Update logical index
         currentIndex = newIndex;
         
         // PERSISTENCE CHECK:
-        // Unlike 2D (where background viewers already played), 
-        // AR loads a FRESH model src. We must enforce the state manually.
         if (isAtEnd) {
-           activeViewer.currentTime = 0;
-           activeViewer.play({ repetitions: 1 });
+           presentingViewer.currentTime = 0;
+           presentingViewer.play({ repetitions: 1 });
         } else {
-           activeViewer.pause();
-           activeViewer.currentTime = 0;
+           presentingViewer.pause();
+           presentingViewer.currentTime = 0;
         }
 
+        // Update UI (Buttons only, visibility is locked by presenting check)
         updateUI();
         
       } else {
-        // 2D MODE: Toggle Viewer Visibility (Standard Multi-Viewer behavior)
+        // 2D MODE: Toggle Viewer Visibility
         currentIndex = newIndex;
-        // PERSISTENCE: logic maintained (we do NOT reset isAtEnd)
-        // Background viewers are already synced via Global Broadcast
         updateUI();
       }
     }
