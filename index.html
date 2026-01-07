@@ -101,12 +101,42 @@
     }
     .prev-btn { left: 20px; }
     .next-btn { right: 20px; }
+    
+    .ar-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 10px 16px;
+      background-color: white;
+      color: #333;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      z-index: 2000; /* Above everything */
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .ar-btn:hover {
+      background-color: #f8f9fa;
+    }
   </style>
 </head>
 <body>
   <div class="viewer-container">
+    <button id="ar-btn" class="ar-btn">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
+        <path d="M17 3H15V5H17C18.1046 5 19 5.89543 19 7V9H21V7C21 4.79086 19.2091 3 17 3Z" fill="currentColor"/>
+        <path d="M21 17V15H19V17C19 18.1046 18.1046 19 17 19H15V21H17C19.2091 21 21 19.2091 21 17Z" fill="currentColor"/>
+        <path d="M7 21H9V19H7C5.89543 19 5 18.1046 5 17V15H3V17C3 19.2091 4.79086 21 7 21Z" fill="currentColor"/>
+      </svg>
+      Ver em AR
+    </button>
     <!-- Viewer 0 -->
-    <model-viewer id="mv-0" src="modelos/01.glb" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false" class="active">
+    <model-viewer id="mv-0" src="modelos/01.glb" ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false" class="active">
       <div class="controls-container">
         <button class="nav-btn prev-btn" style="display: none;">←</button>
         <button class="nav-btn next-btn">→</button>
@@ -115,7 +145,7 @@
     </model-viewer>
 
     <!-- Viewer 1 -->
-    <model-viewer id="mv-1" src="modelos/02.glb" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
+    <model-viewer id="mv-1" src="modelos/02.glb" ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
       <div class="controls-container">
         <button class="nav-btn prev-btn">←</button>
         <button class="nav-btn next-btn">→</button>
@@ -124,7 +154,7 @@
     </model-viewer>
 
     <!-- Viewer 2 -->
-    <model-viewer id="mv-2" src="modelos/03.glb" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
+    <model-viewer id="mv-2" src="modelos/03.glb" ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
       <div class="controls-container">
         <button class="nav-btn prev-btn">←</button>
         <button class="nav-btn next-btn">→</button>
@@ -133,7 +163,7 @@
     </model-viewer>
 
     <!-- Viewer 3 -->
-    <model-viewer id="mv-3" src="modelos/04.glb" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
+    <model-viewer id="mv-3" src="modelos/04.glb" ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
       <div class="controls-container">
         <button class="nav-btn prev-btn">←</button>
         <button class="nav-btn next-btn" style="display: none;">→</button>
@@ -260,6 +290,17 @@
 
     nextBtns.forEach(btn => {
       btn.addEventListener('click', () => switchModel(currentIndex + 1));
+    });
+
+    // AR BUTTON HANDLER
+    const arBtn = document.getElementById('ar-btn');
+    arBtn.addEventListener('click', () => {
+      const activeViewer = viewers[currentIndex];
+      if (activeViewer.canActivateAR) {
+        activeViewer.activateAR();
+      } else {
+        alert("AR não está disponível neste dispositivo ou navegador.");
+      }
     });
 
     // Initial State
