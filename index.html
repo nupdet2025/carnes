@@ -144,6 +144,9 @@
 
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <script>
+    // Model Paths for AR navigation source-swapping
+    const modelPaths = ['modelos/01.glb', 'modelos/02.glb', 'modelos/03.glb', 'modelos/04.glb'];
+    
     const viewers = [
       document.getElementById('mv-0'),
       document.getElementById('mv-1'),
@@ -153,13 +156,14 @@
     let currentIndex = 0;
     let isAtEnd = false;
 
-    // Get ALL instances of buttons
+    // Get ALL instances of buttons from DOM
     const playBtns = document.querySelectorAll('.action-btn');
     const prevBtns = document.querySelectorAll('.prev-btn');
     const nextBtns = document.querySelectorAll('.next-btn');
 
     function updateUI() {
-      // Toggle viewer visibility
+      // 2D Visibility Toggle (Only determining which viewer is visible in DOM)
+      // In AR mode, this background visibility doesn't matter, but we keep it updated for exit
       viewers.forEach((v, i) => {
         if (i === currentIndex) {
           v.classList.add('active');
@@ -188,9 +192,10 @@
     // BROADCAST ROTATION
     viewers.forEach((v, i) => {
       v.addEventListener('camera-change', (event) => {
-        if (i !== currentIndex) return; // Only broadcast from active model
-        
+        if (i !== currentIndex) return; 
         const orbit = v.getCameraOrbit().toString();
+        
+        // Sync to others (so if we exit AR or switch 2D view, camera is aligned)
         viewers.forEach((otherViewer, otherIndex) => {
           if (otherIndex !== currentIndex) {
             otherViewer.cameraOrbit = orbit;
@@ -199,25 +204,72 @@
       });
     });
 
+    // NAVIGATION HANDLER (Hybrid AR/2D)
+    function switchModel(newIndex) {
+      if (newIndex < 0 || newIndex >= modelPaths.length) return;
+      
+      const activeViewer = viewers[currentIndex];
+      const isAR = activeViewer.getAttribute('ar-status') === 'presenting';
+
+      if (isAR) {
+        // AR MODE: Swap SRC on the ACTIVE viewer to keep session alive
+        activeViewer.src = modelPaths[newIndex];
+        
+        // Update index but DO NOT toggle visibility classes yet (it would kill AR)
+        currentIndex = newIndex;
+        
+        // Reset animation state for the new model
+        isAtEnd = false;
+        activeViewer.currentTime = 0;
+        activeViewer.pause();
+        
+        // Update UI buttons (text/arrows)
+        updateUI();
+        
+      } else {
+        // 2D MODE: Toggle Viewer Visibility (Standard Multi-Viewer architecture)
+        currentIndex = newIndex;
+        updateUI();
+      }
+    }
+
+    // AR SESSION RESTORATION
+    viewers.forEach((v, index) => {
+      v.addEventListener('ar-status', (event) => {
+        if (event.detail.status === 'not-presenting') {
+          // User exited AR. Revert the viewer's SRC to its original default
+          // preventing "wrong model in wrong viewer" issues
+          v.src = modelPaths[index];
+          
+          // Ensure the 2D view shows the model we were just looking at
+          updateUI();
+        }
+      });
+    });
+
     // HANDLE PLAY CLICK (Delegated to all buttons)
     playBtns.forEach(btn => {
       btn.addEventListener('click', () => {
-        // Prevent double clicks
         if (btn.disabled) return;
-        
-        // Disable all buttons immediately to prevent sync issues
         playBtns.forEach(b => b.disabled = true);
 
+        const activeViewer = viewers[currentIndex];
+        
+        // Simple Single-Shot Animation Logic
         if (!isAtEnd) {
-          // Play all 4 Forward
-          viewers.forEach(v => {
-            v.currentTime = 0;
-            v.timeScale = 1;
-            v.play({ repetitions: 1 });
+          // Play current viewer (works for both 2D and AR-swapped src)
+          activeViewer.currentTime = 0;
+          activeViewer.timeScale = 1;
+          activeViewer.play({ repetitions: 1 });
+
+          // Also trigger others for consistency in 2D background
+          viewers.forEach((v, i) => {
+             if (i !== currentIndex) {
+                v.currentTime = 0;
+                v.play({ repetitions: 1 });
+             }
           });
 
-          // Monitor active viewer for completion
-          const activeViewer = viewers[currentIndex];
           const checkEnd = () => {
             if (activeViewer.currentTime >= activeViewer.duration - 0.01) {
               isAtEnd = true;
@@ -228,7 +280,7 @@
           };
           checkEnd();
         } else {
-          // Reset all 4 simultaneously
+          // Reset
           viewers.forEach(v => {
             v.pause();
             v.currentTime = 0;
@@ -239,24 +291,13 @@
       });
     });
 
-    // HANDLE PREV CLICK
+    // HANDLE NAVIGATION CLICKS
     prevBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (currentIndex > 0) {
-          currentIndex--;
-          updateUI();
-        }
-      });
+      btn.addEventListener('click', () => switchModel(currentIndex - 1));
     });
 
-    // HANDLE NEXT CLICK
     nextBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (currentIndex < viewers.length - 1) {
-          currentIndex++;
-          updateUI();
-        }
-      });
+      btn.addEventListener('click', () => switchModel(currentIndex + 1));
     });
 
     // Initial State
