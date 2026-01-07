@@ -35,7 +35,20 @@
       opacity: 1;
       pointer-events: auto;
     }
-    #play-btn {
+    
+    /* Controls Container - Key for AR Visibility */
+    .controls-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1000;
+    }
+    
+    /* Buttons must have pointer-events auto to be clickable */
+    .action-btn {
       position: absolute;
       bottom: 20px;
       left: 50%;
@@ -48,21 +61,21 @@
       border: none;
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      z-index: 1000;
+      pointer-events: auto; 
       transition: all 0.2s ease;
     }
-    #play-btn:active {
+    .action-btn:active {
       background-color: #0056b3;
       transform: translateX(-50%) scale(0.95);
     }
-    #play-btn.reverse {
+    .action-btn.reverse {
       background-color: #f4a261;
     }
-    #play-btn.reverse:active {
+    .action-btn.reverse:active {
       background-color: #e76f51;
     }
 
-    .nav-side-btn {
+    .nav-btn {
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
@@ -75,31 +88,58 @@
       font-size: 20px;
       font-weight: bold;
       cursor: pointer;
-      z-index: 1000;
       display: flex;
       justify-content: center;
       align-items: center;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      pointer-events: auto;
       transition: all 0.2s ease;
     }
-    .nav-side-btn:active {
+    .nav-btn:active {
       transform: translateY(-50%) scale(0.9);
       background-color: #0056b3;
     }
-    #prev-btn { left: 20px; }
-    #next-btn { right: 20px; }
+    .prev-btn { left: 20px; }
+    .next-btn { right: 20px; }
   </style>
 </head>
 <body>
   <div class="viewer-container">
-    <model-viewer id="mv-0" src="modelos/01.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false" class="active"></model-viewer>
-    <model-viewer id="mv-1" src="modelos/02.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false"></model-viewer>
-    <model-viewer id="mv-2" src="modelos/03.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false"></model-viewer>
-    <model-viewer id="mv-3" src="modelos/04.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false"></model-viewer>
+    <!-- Viewer 0 -->
+    <model-viewer id="mv-0" src="modelos/01.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false" class="active">
+      <div class="controls-container">
+        <button class="nav-btn prev-btn" style="display: none;">←</button>
+        <button class="nav-btn next-btn">→</button>
+        <button class="action-btn">Pendurar</button>
+      </div>
+    </model-viewer>
 
-    <button id="prev-btn" class="nav-side-btn" style="display: none;">←</button>
-    <button id="next-btn" class="nav-side-btn">→</button>
-    <button id="play-btn">Rodar Animação</button>
+    <!-- Viewer 1 -->
+    <model-viewer id="mv-1" src="modelos/02.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
+      <div class="controls-container">
+        <button class="nav-btn prev-btn">←</button>
+        <button class="nav-btn next-btn">→</button>
+        <button class="action-btn">Pendurar</button>
+      </div>
+    </model-viewer>
+
+    <!-- Viewer 2 -->
+    <model-viewer id="mv-2" src="modelos/03.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
+      <div class="controls-container">
+        <button class="nav-btn prev-btn">←</button>
+        <button class="nav-btn next-btn">→</button>
+        <button class="action-btn">Pendurar</button>
+      </div>
+    </model-viewer>
+
+    <!-- Viewer 3 -->
+    <model-viewer id="mv-3" src="modelos/04.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
+      <div class="controls-container">
+        <button class="nav-btn prev-btn">←</button>
+        <button class="nav-btn next-btn" style="display: none;">→</button>
+        <button class="action-btn">Pendurar</button>
+      </div>
+    </model-viewer>
   </div>
 
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
@@ -113,12 +153,13 @@
     let currentIndex = 0;
     let isAtEnd = false;
 
-    const playBtn = document.getElementById('play-btn');
-    const prevBtn = document.getElementById('prev-btn');
-    const nextBtn = document.getElementById('next-btn');
+    // Select ALL duplicate buttons
+    const playBtns = document.querySelectorAll('.action-btn');
+    const prevBtns = document.querySelectorAll('.prev-btn');
+    const nextBtns = document.querySelectorAll('.next-btn');
 
     function updateUI() {
-      // Toggle visibility
+      // Simple Visibility Toggle (Standard Multi-Viewer)
       viewers.forEach((v, i) => {
         if (i === currentIndex) {
           v.classList.add('active');
@@ -127,27 +168,29 @@
         }
       });
 
-      // Update Nav Buttons
-      prevBtn.style.display = currentIndex === 0 ? 'none' : 'flex';
-      nextBtn.style.display = currentIndex === viewers.length - 1 ? 'none' : 'flex';
+      // Update Text on ALL buttons
+      playBtns.forEach(btn => {
+        btn.disabled = false;
+        if (isAtEnd) {
+          btn.textContent = 'Voltar';
+          btn.classList.add('reverse');
+        } else {
+          btn.textContent = 'Pendurar';
+          btn.classList.remove('reverse');
+        }
+      });
 
-      // Update Play Button
-      if (isAtEnd) {
-        playBtn.textContent = 'Voltar Animação';
-        playBtn.classList.add('reverse');
-      } else {
-        playBtn.textContent = 'Rodar Animação';
-        playBtn.classList.remove('reverse');
-      }
-      playBtn.disabled = false;
+      // Update Visibility of Navigation arrows on ALL sets
+      prevBtns.forEach(btn => btn.style.display = currentIndex === 0 ? 'none' : 'flex');
+      nextBtns.forEach(btn => btn.style.display = currentIndex === viewers.length - 1 ? 'none' : 'flex');
     }
 
     // BROADCAST ROTATION
     viewers.forEach((v, i) => {
       v.addEventListener('camera-change', (event) => {
-        if (i !== currentIndex) return; // Only broadcast from active model
-        
+        if (i !== currentIndex) return;
         const orbit = v.getCameraOrbit().toString();
+        
         viewers.forEach((otherViewer, otherIndex) => {
           if (otherIndex !== currentIndex) {
             otherViewer.cameraOrbit = orbit;
@@ -156,56 +199,66 @@
       });
     });
 
-    // BROADCAST ANIMATION
-    playBtn.addEventListener('click', () => {
-      if (playBtn.disabled) return;
-      playBtn.disabled = true;
+    // PLAY BUTTON LOGIC
+    playBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (btn.disabled) return;
+            // Lock all buttons
+            playBtns.forEach(b => b.disabled = true);
 
-      if (!isAtEnd) {
-        // Play all 4 Forward
-        viewers.forEach(v => {
-          v.currentTime = 0;
-          v.timeScale = 1;
-          v.play({ repetitions: 1 });
+            const activeViewer = viewers[currentIndex];
+            
+            if (!isAtEnd) {
+                // Play logic
+                viewers.forEach(v => {
+                    v.currentTime = 0;
+                    v.timeScale = 1;
+                    v.play({ repetitions: 1 });
+                });
+
+                const checkEnd = () => {
+                    if (activeViewer.currentTime >= activeViewer.duration - 0.01) {
+                        isAtEnd = true;
+                        updateUI();
+                    } else if (!isAtEnd) {
+                        requestAnimationFrame(checkEnd);
+                    }
+                };
+                checkEnd();
+            } else {
+                // Reset logic
+                viewers.forEach(v => {
+                    v.pause();
+                    v.currentTime = 0;
+                });
+                isAtEnd = false;
+                updateUI();
+            }
         });
-
-        // Monitor active viewer for completion
-        const activeViewer = viewers[currentIndex];
-        const checkEnd = () => {
-          if (activeViewer.currentTime >= activeViewer.duration - 0.01) {
-            isAtEnd = true;
-            updateUI();
-          } else if (!isAtEnd) {
-            requestAnimationFrame(checkEnd);
-          }
-        };
-        checkEnd();
-      } else {
-        // Reset all 4 simultaneously
-        viewers.forEach(v => {
-          v.pause();
-          v.currentTime = 0;
-        });
-        isAtEnd = false;
-        updateUI();
-      }
     });
 
-    prevBtn.addEventListener('click', () => {
-      if (currentIndex > 0) {
-        currentIndex--;
-        updateUI();
-      }
+    // NAVIGATION
+    prevBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (currentIndex > 0) {
+          currentIndex--;
+          isAtEnd = false; // Reset state on switch
+          updateUI();
+        }
+      });
     });
 
-    nextBtn.addEventListener('click', () => {
-      if (currentIndex < viewers.length - 1) {
-        currentIndex++;
-        updateUI();
-      }
+    nextBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (currentIndex < viewers.length - 1) {
+          currentIndex++;
+          isAtEnd = false; // Reset state on switch
+          updateUI();
+        }
+      });
     });
 
-    // Initial State
+    // Init
     updateUI();
   </script>
 </body>
