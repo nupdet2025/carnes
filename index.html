@@ -144,6 +144,9 @@
 
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <script>
+    // Model Paths for AR navigation source-swapping
+    const modelPaths = ['modelos/01.glb', 'modelos/02.glb', 'modelos/03.glb', 'modelos/04.glb'];
+    
     const viewers = [
       document.getElementById('mv-0'),
       document.getElementById('mv-1'),
@@ -151,15 +154,17 @@
       document.getElementById('mv-3')
     ];
     let currentIndex = 0;
+    // Animation state must be tracked globally for the active model
     let isAtEnd = false;
 
-    // Select ALL duplicate buttons
+    // Get ALL instances of buttons from DOM
     const playBtns = document.querySelectorAll('.action-btn');
     const prevBtns = document.querySelectorAll('.prev-btn');
     const nextBtns = document.querySelectorAll('.next-btn');
 
     function updateUI() {
-      // Simple Visibility Toggle (Standard Multi-Viewer)
+      // 2D Visibility Toggle (Standard Multi-Viewer)
+      // Even in AR, we update this so that if the user exits AR, the correct model is shown in 2D
       viewers.forEach((v, i) => {
         if (i === currentIndex) {
           v.classList.add('active');
@@ -168,7 +173,7 @@
         }
       });
 
-      // Update Text on ALL buttons
+      // Update Text/State on ALL duplicate buttons
       playBtns.forEach(btn => {
         btn.disabled = false;
         if (isAtEnd) {
@@ -180,12 +185,12 @@
         }
       });
 
-      // Update Visibility of Navigation arrows on ALL sets
+      // Update Visibility of Navigation arrows on ALL duplicate sets
       prevBtns.forEach(btn => btn.style.display = currentIndex === 0 ? 'none' : 'flex');
       nextBtns.forEach(btn => btn.style.display = currentIndex === viewers.length - 1 ? 'none' : 'flex');
     }
 
-    // BROADCAST ROTATION
+    // BROADCAST CAMERA ROTATION
     viewers.forEach((v, i) => {
       v.addEventListener('camera-change', (event) => {
         if (i !== currentIndex) return;
@@ -199,25 +204,76 @@
       });
     });
 
-    // PLAY BUTTON LOGIC
+    // HYBRID NAVIGATION HANDLER
+    function switchModel(newIndex) {
+      if (newIndex < 0 || newIndex >= modelPaths.length) return;
+      
+      const activeViewer = viewers[currentIndex];
+      // Check if we are currently presenting AR
+      const isAR = activeViewer.getAttribute('ar-status') === 'presenting';
+
+      if (isAR) {
+        // AR MODE: Swap SRC on the ACTIVE viewer to keep session alive
+        // This allows "Next/Prev" behavior without exiting AR
+        activeViewer.src = modelPaths[newIndex];
+        
+        // Update index (virtually)
+        currentIndex = newIndex;
+        
+        // Reset animation state for the new model
+        isAtEnd = false;
+        activeViewer.currentTime = 0;
+        activeViewer.pause();
+        
+        // Update UI buttons (Update arrows based on new virtual index)
+        updateUI();
+        
+      } else {
+        // 2D MODE: Toggle Viewer Visibility (Standard Multi-Viewer behavior)
+        currentIndex = newIndex;
+        // In 2D, switching models resets state logic for that view
+        isAtEnd = false; 
+        updateUI();
+      }
+    }
+
+    // AR SESSION RESTORATION (The "Cleanup" phase)
+    viewers.forEach((v, index) => {
+      v.addEventListener('ar-status', (event) => {
+        if (event.detail.status === 'not-presenting') {
+          // User exited AR. 
+          // 1. Revert the viewer's SRC to its original model to prevent confusion in 2D
+          v.src = modelPaths[index];
+          
+          // 2. Ensure the 2D view shows the model the user was looking at in AR
+          // (updateUI uses the global 'currentIndex' which was updated during AR nav)
+          updateUI();
+        }
+      });
+    });
+
+    // STRICT GLOBAL SYNC - PLAY/RESET HANDLER
     playBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             if (btn.disabled) return;
-            // Lock all buttons
+            // Lock all buttons to prevent race conditions
             playBtns.forEach(b => b.disabled = true);
 
             const activeViewer = viewers[currentIndex];
             
             if (!isAtEnd) {
-                // Play logic
+                // COMMAND: PLAY ALL
+                // Synchronize all 4 models to Play Once
                 viewers.forEach(v => {
                     v.currentTime = 0;
                     v.timeScale = 1;
                     v.play({ repetitions: 1 });
                 });
 
+                // Monitor only the active viewer to determine when animation ends
                 const checkEnd = () => {
-                    if (activeViewer.currentTime >= activeViewer.duration - 0.01) {
+                    // Check if animation finished (approximate duration)
+                    if (activeViewer.duration > 0 && activeViewer.currentTime >= activeViewer.duration - 0.05) {
                         isAtEnd = true;
                         updateUI();
                     } else if (!isAtEnd) {
@@ -225,8 +281,10 @@
                     }
                 };
                 checkEnd();
+
             } else {
-                // Reset logic
+                // COMMAND: RESET ALL
+                // Synchronize all 4 models to Reset to Frame 1 (Time 0)
                 viewers.forEach(v => {
                     v.pause();
                     v.currentTime = 0;
@@ -237,28 +295,16 @@
         });
     });
 
-    // NAVIGATION
+    // NAVIGATION CLICKS - Wired to Hybrid Switch Logic
     prevBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (currentIndex > 0) {
-          currentIndex--;
-          isAtEnd = false; // Reset state on switch
-          updateUI();
-        }
-      });
+      btn.addEventListener('click', () => switchModel(currentIndex - 1));
     });
 
     nextBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (currentIndex < viewers.length - 1) {
-          currentIndex++;
-          isAtEnd = false; // Reset state on switch
-          updateUI();
-        }
-      });
+      btn.addEventListener('click', () => switchModel(currentIndex + 1));
     });
 
-    // Init
+    // Initial State
     updateUI();
   </script>
 </body>
