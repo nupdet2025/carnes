@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Galeria 3D com RA</title>
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <style>
     body {
       margin: 0;
@@ -25,8 +26,7 @@
       width: 100%;
       height: 100%;
       position: absolute;
-      top: 0;
-      left: 0;
+      top: 0; left: 0;
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.3s ease;
@@ -36,7 +36,26 @@
       pointer-events: auto;
     }
 
-    /* Botões de navegação lateral */
+    /* Botão RA global */
+    #ar-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 10px 16px;
+      background: white;
+      color: #333;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    /* Navegação lateral */
     .nav-side-btn {
       position: absolute;
       top: 50%;
@@ -57,14 +76,11 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       transition: all 0.2s ease;
     }
-    .nav-side-btn:active {
-      transform: translateY(-50%) scale(0.9);
-      background-color: #0056b3;
-    }
+    .nav-side-btn:active { transform: translateY(-50%) scale(0.9); background-color: #0056b3; }
     #prev-btn { left: 20px; }
     #next-btn { right: 20px; }
 
-    /* Botão de animação dentro do viewer (overlay) */
+    /* Botão de animação interno (overlay) */
     .animation-overlay-btn {
       position: absolute;
       bottom: 30px;
@@ -72,61 +88,63 @@
       transform: translateX(-50%);
       padding: 14px 28px;
       font-size: 17px;
-      cursor: pointer;
       background-color: #007bff;
       color: white;
       border: none;
       border-radius: 12px;
       box-shadow: 0 6px 16px rgba(0,0,0,0.3);
       z-index: 1000;
+      pointer-events: auto;
       transition: all 0.2s ease;
-      pointer-events: auto; /* importante para funcionar no overlay */
     }
-    .animation-overlay-btn:active {
-      transform: translateX(-50%) scale(0.95);
-      background-color: #0056b3;
-    }
-    .animation-overlay-btn.reverse {
-      background-color: #f4a261;
-    }
-    .animation-overlay-btn.reverse:active {
-      background-color: #e76f51;
-    }
+    .animation-overlay-btn:active { transform: translateX(-50%) scale(0.95); background-color: #0056b3; }
+    .animation-overlay-btn.reverse { background-color: #f4a261; }
+    .animation-overlay-btn.reverse:active { background-color: #e76f51; }
   </style>
 </head>
 <body>
   <div class="viewer-container">
-    <!-- Viewers com botão de animação interno -->
-    <model-viewer id="mv-0" src="modelos/01.glb" ar ar-modes="webxr scene-viewer quick-look" 
-      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false" class="active"
-      touch-action="pan-y">
-      <button class="animation-overlay-btn">Rodar Animação</button>
-    </model-viewer>
+    <!-- Botão global Ver em RA -->
+    <button id="ar-btn">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
+        <path d="M17 3H15V5H17C18.1046 5 19 5.89543 19 7V9H21V7C21 4.79086 19.2091 3 17 3Z" fill="currentColor"/>
+        <path d="M21 17V15H19V17C19 18.1046 18.1046 19 17 19H15V21H17C19.2091 21 21 19.2091 21 17Z" fill="currentColor"/>
+        <path d="M7 21H9V19H7C5.89543 19 5 18.1046 5 17V15H3V17C3 19.2091 4.79086 21 7 21Z" fill="currentColor"/>
+      </svg>
+      Ver em RA
+    </button>
 
-    <model-viewer id="mv-1" src="modelos/02.glb" ar ar-modes="webxr scene-viewer quick-look" 
-      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false"
-      touch-action="pan-y">
-      <button class="animation-overlay-btn">Rodar Animação</button>
-    </model-viewer>
-
-    <model-viewer id="mv-2" src="modelos/03.glb" ar ar-modes="webxr scene-viewer quick-look" 
-      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false"
-      touch-action="pan-y">
-      <button class="animation-overlay-btn">Rodar Animação</button>
-    </model-viewer>
-
-    <model-viewer id="mv-3" src="modelos/04.glb" ar ar-modes="webxr scene-viewer quick-look" 
-      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false"
-      touch-action="pan-y">
-      <button class="animation-overlay-btn">Rodar Animação</button>
-    </model-viewer>
-
-    <!-- Navegação lateral (apenas no 3D View) -->
+    <!-- Navegação lateral -->
     <button id="prev-btn" class="nav-side-btn" style="display: none;">←</button>
     <button id="next-btn" class="nav-side-btn">→</button>
+
+    <!-- Model Viewers -->
+    <model-viewer id="mv-0" src="modelos/01.glb" ar ar-modes="webxr scene-viewer quick-look"
+      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
+      animation-loop="false" touch-action="pan-y" class="active">
+      <button class="animation-overlay-btn">Rodar Animação</button>
+    </model-viewer>
+
+    <model-viewer id="mv-1" src="modelos/02.glb" ar ar-modes="webxr scene-viewer quick-look"
+      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
+      animation-loop="false" touch-action="pan-y">
+      <button class="animation-overlay-btn">Rodar Animação</button>
+    </model-viewer>
+
+    <model-viewer id="mv-2" src="modelos/03.glb" ar ar-modes="webxr scene-viewer quick-look"
+      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
+      animation-loop="false" touch-action="pan-y">
+      <button class="animation-overlay-btn">Rodar Animação</button>
+    </model-viewer>
+
+    <model-viewer id="mv-3" src="modelos/04.glb" ar ar-modes="webxr scene-viewer quick-look"
+      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
+      animation-loop="false" touch-action="pan-y">
+      <button class="animation-overlay-btn">Rodar Animação</button>
+    </model-viewer>
   </div>
 
-  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <script>
     const viewers = [
       document.getElementById('mv-0'),
@@ -137,29 +155,26 @@
     let currentIndex = 0;
     let isAtEnd = false;
 
-    // Todos os botões de animação (um em cada viewer)
     const playBtns = document.querySelectorAll('.animation-overlay-btn');
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
+    const arBtn = document.getElementById('ar-btn');
 
     function updateUI() {
-      viewers.forEach((v, i) => {
-        v.classList.toggle('active', i === currentIndex);
-      });
+      viewers.forEach((v, i) => v.classList.toggle('active', i === currentIndex));
 
       prevBtn.style.display = currentIndex === 0 ? 'none' : 'flex';
       nextBtn.style.display = currentIndex === viewers.length - 1 ? 'none' : 'flex';
 
-      // Atualiza texto e cor de TODOS os botões de animação
       playBtns.forEach(btn => {
         btn.textContent = isAtEnd ? 'Voltar Animação' : 'Rodar Animação';
         btn.classList.toggle('reverse', isAtEnd);
       });
     }
 
-    // BROADCAST ROTATION (mantido da sua versão — perfeito!)
+    // Sincronização contínua de câmera (mantida da sua versão base)
     viewers.forEach((v, i) => {
-      v.addEventListener('camera-change', (event) => {
+      v.addEventListener('camera-change', () => {
         if (i !== currentIndex) return;
         const orbit = v.getCameraOrbit().toString();
         viewers.forEach((other, j) => {
@@ -168,11 +183,10 @@
       });
     });
 
-    // ANIMAÇÃO — agora acionada por qualquer botão overlay
+    // Animação (funciona no 3D View e RA Android)
     playBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         if (!isAtEnd) {
-          // Rodar animação em todos os viewers
           viewers.forEach(v => {
             v.currentTime = 0;
             v.timeScale = 1;
@@ -180,7 +194,6 @@
           });
           isAtEnd = true;
         } else {
-          // Voltar ao início
           viewers.forEach(v => {
             v.pause();
             v.currentTime = 0;
@@ -193,15 +206,27 @@
 
     // Navegação
     prevBtn.addEventListener('click', () => {
-      if (currentIndex > 0) {
-        currentIndex--;
-        updateUI();
-      }
+      if (currentIndex > 0) { currentIndex--; updateUI(); }
     });
     nextBtn.addEventListener('click', () => {
-      if (currentIndex < viewers.length - 1) {
-        currentIndex++;
-        updateUI();
+      if (currentIndex < viewers.length - 1) { currentIndex++; updateUI(); }
+    });
+
+    // BOTÃO RA GLOBAL – ativa RA apenas no modelo atual
+    arBtn.addEventListener('click', async () => {
+      const activeViewer = viewers[currentIndex];
+
+      try {
+        if (await activeViewer.canActivateAR()) {
+          await activeViewer.activateAR();
+        } else {
+          throw new Error('AR não suportado');
+        }
+      } catch (err) {
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        alert(isIOS
+          ? 'RA disponível via Quick Look.\nTroque o modelo no 3D View antes de entrar.'
+          : 'RA não suportada neste dispositivo ou navegador atualizado.');
       }
     });
 
