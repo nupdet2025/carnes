@@ -36,23 +36,28 @@
       pointer-events: auto;
     }
 
-    /* Botão RA global */
-    #ar-btn {
+    /* Esconde o botão AR default do <model-viewer> */
+    model-viewer::part(default-ar-button) {
+      display: none !important;
+    }
+
+    /* Estilo do botão AR customizado (posição inferior direita, como o original) */
+    .custom-ar-button {
       position: absolute;
-      top: 20px;
+      bottom: 20px;
       right: 20px;
-      padding: 10px 16px;
+      padding: 12px 20px;
       background: white;
       color: #333;
       border: none;
       border-radius: 8px;
       font-weight: bold;
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      z-index: 2000;
       display: flex;
       align-items: center;
       gap: 8px;
       cursor: pointer;
+      z-index: 1000;
     }
 
     /* Navegação lateral */
@@ -104,43 +109,69 @@
 </head>
 <body>
   <div class="viewer-container">
-    <!-- Botão global Ver em RA -->
-    <button id="ar-btn">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
-        <path d="M17 3H15V5H17C18.1046 5 19 5.89543 19 7V9H21V7C21 4.79086 19.2091 3 17 3Z" fill="currentColor"/>
-        <path d="M21 17V15H19V17C19 18.1046 18.1046 19 17 19H15V21H17C19.2091 21 21 19.2091 21 17Z" fill="currentColor"/>
-        <path d="M7 21H9V19H7C5.89543 19 5 18.1046 5 17V15H3V17C3 19.2091 4.79086 21 7 21Z" fill="currentColor"/>
-      </svg>
-      Ver em RA
-    </button>
-
     <!-- Navegação lateral -->
     <button id="prev-btn" class="nav-side-btn" style="display: none;">←</button>
     <button id="next-btn" class="nav-side-btn">→</button>
 
-    <!-- Model Viewers -->
+    <!-- Model Viewers com botão AR customizado no canto inferior direito -->
     <model-viewer id="mv-0" src="modelos/01.glb" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y" class="active">
+      <button slot="ar-button" class="custom-ar-button">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
+          <path d="M17 3H15V5H17C18.1046 5 19 5.89543 19 7V9H21V7C21 4.79086 19.2091 3 17 3Z" fill="currentColor"/>
+          <path d="M21 17V15H19V17C19 18.1046 18.1046 19 17 19H15V21H17C19.2091 21 21 19.2091 21 17Z" fill="currentColor"/>
+          <path d="M7 21H9V19H7C5.89543 19 5 18.1046 5 17V15H3V17C3 19.2091 4.79086 21 7 21Z" fill="currentColor"/>
+        </svg>
+        Ver em RA
+      </button>
       <button class="animation-overlay-btn">Rodar Animação</button>
     </model-viewer>
 
+    <!-- Repita o mesmo botão customizado em todos os viewers -->
     <model-viewer id="mv-1" src="modelos/02.glb" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y">
+      <button slot="ar-button" class="custom-ar-button">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
+          <path d="M17 3H15V5H17C18.1046 5 19 5.89543 19 7V9H21V7C21 4.79086 19.2091 3 17 3Z" fill="currentColor"/>
+          <path d="M21 17V15H19V17C19 18.1046 18.1046 19 17 19H15V21H17C19.2091 21 21 19.2091 21 17Z" fill="currentColor"/>
+          <path d="M7 21H9V19H7C5.89543 19 5 18.1046 5 17V15H3V17C3 19.2091 4.79086 21 7 21Z" fill="currentColor"/>
+        </svg>
+        Ver em RA
+      </button>
       <button class="animation-overlay-btn">Rodar Animação</button>
     </model-viewer>
 
     <model-viewer id="mv-2" src="modelos/03.glb" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y">
+      <button slot="ar-button" class="custom-ar-button">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
+          <path d="M17 3H15V5H17C18.1046 5 19 5.89543 19 7V9H21V7C21 4.79086 19.2091 3 17 3Z" fill="currentColor"/>
+          <path d="M21 17V15H19V17C19 18.1046 18.1046 19 17 19H15V21H17C19.2091 21 21 19.2091 21 17Z" fill="currentColor"/>
+          <path d="M7 21H9V19H7C5.89543 19 5 18.1046 5 17V15H3V17C3 19.2091 4.79086 21 7 21Z" fill="currentColor"/>
+        </svg>
+        Ver em RA
+      </button>
       <button class="animation-overlay-btn">Rodar Animação</button>
     </model-viewer>
 
     <model-viewer id="mv-3" src="modelos/04.glb" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y">
+      <button slot="ar-button" class="custom-ar-button">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
+          <path d="M17 3H15V5H17C18.1046 5 19 5.89543 19 7V9H21V7C21 4.79086 19.2091 3 17 3Z" fill="currentColor"/>
+          <path d="M21 17V15H19V17C19 18.1046 18.1046 19 17 19H15V21H17C19.2091 21 21 19.2091 21 17Z" fill="currentColor"/>
+          <path d="M7 21H9V19H7C5.89543 19 5 18.1046 5 17V15H3V17C3 19.2091 4.79086 21 7 21Z" fill="currentColor"/>
+        </svg>
+        Ver em RA
+      </button>
       <button class="animation-overlay-btn">Rodar Animação</button>
     </model-viewer>
   </div>
@@ -158,7 +189,6 @@
     const playBtns = document.querySelectorAll('.animation-overlay-btn');
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
-    const arBtn = document.getElementById('ar-btn');
 
     function updateUI() {
       viewers.forEach((v, i) => v.classList.toggle('active', i === currentIndex));
@@ -172,7 +202,7 @@
       });
     }
 
-    // Sincronização contínua de câmera (mantida da sua versão base)
+    // Sincronização contínua de câmera
     viewers.forEach((v, i) => {
       v.addEventListener('camera-change', () => {
         if (i !== currentIndex) return;
@@ -183,7 +213,7 @@
       });
     });
 
-    // Animação (funciona no 3D View e RA Android)
+    // Animação
     playBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         if (!isAtEnd) {
@@ -210,24 +240,6 @@
     });
     nextBtn.addEventListener('click', () => {
       if (currentIndex < viewers.length - 1) { currentIndex++; updateUI(); }
-    });
-
-    // BOTÃO RA GLOBAL – ativa RA apenas no modelo atual
-    arBtn.addEventListener('click', async () => {
-      const activeViewer = viewers[currentIndex];
-
-      try {
-        if (await activeViewer.canActivateAR()) {
-          await activeViewer.activateAR();
-        } else {
-          throw new Error('AR não suportado');
-        }
-      } catch (err) {
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-        alert(isIOS
-          ? 'RA disponível via Quick Look.\nTroque o modelo no 3D View antes de entrar.'
-          : 'RA não suportada neste dispositivo ou navegador atualizado.');
-      }
     });
 
     // Inicialização
