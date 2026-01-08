@@ -58,6 +58,13 @@
       z-index: 1000;
     }
     
+    /* Ensure buttons work in AR mode */
+    model-viewer .ar-controls * {
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
     /* Buttons */
     .action-btn {
       position: absolute;
