@@ -36,12 +36,12 @@
       pointer-events: auto;
     }
 
-    /* Esconde o botão AR default do <model-viewer> */
+    /* Esconde o botão AR default */
     model-viewer::part(default-ar-button) {
       display: none !important;
     }
 
-    /* Estilo do botão AR customizado (posição inferior direita, como o original) */
+    /* Botão AR customizado – só visível no viewer ativo */
     .custom-ar-button {
       position: absolute;
       bottom: 20px;
@@ -58,6 +58,11 @@
       gap: 8px;
       cursor: pointer;
       z-index: 1000;
+    }
+
+    /* IMPORTANTE: esconde o botão AR nos viewers inativos */
+    model-viewer:not(.active) .custom-ar-button {
+      display: none !important;
     }
 
     /* Navegação lateral */
@@ -85,7 +90,7 @@
     #prev-btn { left: 20px; }
     #next-btn { right: 20px; }
 
-    /* Botão de animação interno (overlay) */
+    /* Botão de animação */
     .animation-overlay-btn {
       position: absolute;
       bottom: 30px;
@@ -113,7 +118,7 @@
     <button id="prev-btn" class="nav-side-btn" style="display: none;">←</button>
     <button id="next-btn" class="nav-side-btn">→</button>
 
-    <!-- Model Viewers com botão AR customizado no canto inferior direito -->
+    <!-- Todos os viewers com o mesmo botão AR customizado -->
     <model-viewer id="mv-0" src="modelos/01.glb" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y" class="active">
@@ -129,7 +134,6 @@
       <button class="animation-overlay-btn">Rodar Animação</button>
     </model-viewer>
 
-    <!-- Repita o mesmo botão customizado em todos os viewers -->
     <model-viewer id="mv-1" src="modelos/02.glb" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y">
