@@ -36,15 +36,15 @@
       pointer-events: auto;
     }
 
-    /* Esconde o botão AR default */
+    /* Esconde o botão AR padrão */
     model-viewer::part(default-ar-button) {
       display: none !important;
     }
 
-    /* Botão AR customizado – só visível no viewer ativo */
+    /* Botão Ver em RA reposicionado para canto SUPERIOR direito */
     .custom-ar-button {
       position: absolute;
-      bottom: 20px;
+      top: 20px;         /* Alterado de bottom para top */
       right: 20px;
       padding: 12px 20px;
       background: white;
@@ -60,7 +60,7 @@
       z-index: 1000;
     }
 
-    /* IMPORTANTE: esconde o botão AR nos viewers inativos */
+    /* Garante que o botão AR só apareça no viewer ativo */
     model-viewer:not(.active) .custom-ar-button {
       display: none !important;
     }
@@ -90,7 +90,7 @@
     #prev-btn { left: 20px; }
     #next-btn { right: 20px; }
 
-    /* Botão de animação */
+    /* Botão de animação (Pendurar / Voltar) */
     .animation-overlay-btn {
       position: absolute;
       bottom: 30px;
@@ -118,7 +118,7 @@
     <button id="prev-btn" class="nav-side-btn" style="display: none;">←</button>
     <button id="next-btn" class="nav-side-btn">→</button>
 
-    <!-- Todos os viewers com o mesmo botão AR customizado -->
+    <!-- Model Viewers -->
     <model-viewer id="mv-0" src="modelos/01.glb" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y" class="active">
@@ -131,7 +131,7 @@
         </svg>
         Ver em RA
       </button>
-      <button class="animation-overlay-btn">Rodar Animação</button>
+      <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
 
     <model-viewer id="mv-1" src="modelos/02.glb" ar ar-modes="webxr scene-viewer quick-look"
@@ -146,7 +146,7 @@
         </svg>
         Ver em RA
       </button>
-      <button class="animation-overlay-btn">Rodar Animação</button>
+      <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
 
     <model-viewer id="mv-2" src="modelos/03.glb" ar ar-modes="webxr scene-viewer quick-look"
@@ -161,7 +161,7 @@
         </svg>
         Ver em RA
       </button>
-      <button class="animation-overlay-btn">Rodar Animação</button>
+      <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
 
     <model-viewer id="mv-3" src="modelos/04.glb" ar ar-modes="webxr scene-viewer quick-look"
@@ -176,7 +176,7 @@
         </svg>
         Ver em RA
       </button>
-      <button class="animation-overlay-btn">Rodar Animação</button>
+      <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
   </div>
 
@@ -200,8 +200,9 @@
       prevBtn.style.display = currentIndex === 0 ? 'none' : 'flex';
       nextBtn.style.display = currentIndex === viewers.length - 1 ? 'none' : 'flex';
 
+      // Atualiza texto dos botões de animação
       playBtns.forEach(btn => {
-        btn.textContent = isAtEnd ? 'Voltar Animação' : 'Rodar Animação';
+        btn.textContent = isAtEnd ? 'Voltar' : 'Pendurar';
         btn.classList.toggle('reverse', isAtEnd);
       });
     }
@@ -217,7 +218,7 @@
       });
     });
 
-    // Animação
+    // Animação (Pendurar / Voltar)
     playBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         if (!isAtEnd) {
