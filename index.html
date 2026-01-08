@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>3D Model Viewer with AR</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Galeria 3D com RA</title>
   <style>
     body {
       margin: 0;
@@ -35,33 +35,8 @@
       opacity: 1;
       pointer-events: auto;
     }
-    #play-btn {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 12px 24px;
-      font-size: 16px;
-      cursor: pointer;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      z-index: 1000;
-      transition: all 0.2s ease;
-    }
-    #play-btn:active {
-      background-color: #0056b3;
-      transform: translateX(-50%) scale(0.95);
-    }
-    #play-btn.reverse {
-      background-color: #f4a261;
-    }
-    #play-btn.reverse:active {
-      background-color: #e76f51;
-    }
 
+    /* Botões de navegação lateral */
     .nav-side-btn {
       position: absolute;
       top: 50%;
@@ -88,18 +63,67 @@
     }
     #prev-btn { left: 20px; }
     #next-btn { right: 20px; }
+
+    /* Botão de animação dentro do viewer (overlay) */
+    .animation-overlay-btn {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 14px 28px;
+      font-size: 17px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+      z-index: 1000;
+      transition: all 0.2s ease;
+      pointer-events: auto; /* importante para funcionar no overlay */
+    }
+    .animation-overlay-btn:active {
+      transform: translateX(-50%) scale(0.95);
+      background-color: #0056b3;
+    }
+    .animation-overlay-btn.reverse {
+      background-color: #f4a261;
+    }
+    .animation-overlay-btn.reverse:active {
+      background-color: #e76f51;
+    }
   </style>
 </head>
 <body>
   <div class="viewer-container">
-    <model-viewer id="mv-0" src="modelos/01.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false" class="active"></model-viewer>
-    <model-viewer id="mv-1" src="modelos/02.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false"></model-viewer>
-    <model-viewer id="mv-2" src="modelos/03.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false"></model-viewer>
-    <model-viewer id="mv-3" src="modelos/04.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false"></model-viewer>
+    <!-- Viewers com botão de animação interno -->
+    <model-viewer id="mv-0" src="modelos/01.glb" ar ar-modes="webxr scene-viewer quick-look" 
+      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false" class="active"
+      touch-action="pan-y">
+      <button class="animation-overlay-btn">Rodar Animação</button>
+    </model-viewer>
 
+    <model-viewer id="mv-1" src="modelos/02.glb" ar ar-modes="webxr scene-viewer quick-look" 
+      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false"
+      touch-action="pan-y">
+      <button class="animation-overlay-btn">Rodar Animação</button>
+    </model-viewer>
+
+    <model-viewer id="mv-2" src="modelos/03.glb" ar ar-modes="webxr scene-viewer quick-look" 
+      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false"
+      touch-action="pan-y">
+      <button class="animation-overlay-btn">Rodar Animação</button>
+    </model-viewer>
+
+    <model-viewer id="mv-3" src="modelos/04.glb" ar ar-modes="webxr scene-viewer quick-look" 
+      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false"
+      touch-action="pan-y">
+      <button class="animation-overlay-btn">Rodar Animação</button>
+    </model-viewer>
+
+    <!-- Navegação lateral (apenas no 3D View) -->
     <button id="prev-btn" class="nav-side-btn" style="display: none;">←</button>
     <button id="next-btn" class="nav-side-btn">→</button>
-    <button id="play-btn">Rodar Animação</button>
   </div>
 
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
@@ -113,91 +137,67 @@
     let currentIndex = 0;
     let isAtEnd = false;
 
-    const playBtn = document.getElementById('play-btn');
+    // Todos os botões de animação (um em cada viewer)
+    const playBtns = document.querySelectorAll('.animation-overlay-btn');
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
 
     function updateUI() {
-      // Toggle visibility
       viewers.forEach((v, i) => {
-        if (i === currentIndex) {
-          v.classList.add('active');
-        } else {
-          v.classList.remove('active');
-        }
+        v.classList.toggle('active', i === currentIndex);
       });
 
-      // Update Nav Buttons
       prevBtn.style.display = currentIndex === 0 ? 'none' : 'flex';
       nextBtn.style.display = currentIndex === viewers.length - 1 ? 'none' : 'flex';
 
-      // Update Play Button
-      if (isAtEnd) {
-        playBtn.textContent = 'Voltar Animação';
-        playBtn.classList.add('reverse');
-      } else {
-        playBtn.textContent = 'Rodar Animação';
-        playBtn.classList.remove('reverse');
-      }
-      playBtn.disabled = false;
+      // Atualiza texto e cor de TODOS os botões de animação
+      playBtns.forEach(btn => {
+        btn.textContent = isAtEnd ? 'Voltar Animação' : 'Rodar Animação';
+        btn.classList.toggle('reverse', isAtEnd);
+      });
     }
 
-    // BROADCAST ROTATION
+    // BROADCAST ROTATION (mantido da sua versão — perfeito!)
     viewers.forEach((v, i) => {
       v.addEventListener('camera-change', (event) => {
-        if (i !== currentIndex) return; // Only broadcast from active model
-        
+        if (i !== currentIndex) return;
         const orbit = v.getCameraOrbit().toString();
-        viewers.forEach((otherViewer, otherIndex) => {
-          if (otherIndex !== currentIndex) {
-            otherViewer.cameraOrbit = orbit;
-          }
+        viewers.forEach((other, j) => {
+          if (j !== currentIndex) other.cameraOrbit = orbit;
         });
       });
     });
 
-    // BROADCAST ANIMATION
-    playBtn.addEventListener('click', () => {
-      if (playBtn.disabled) return;
-      playBtn.disabled = true;
-
-      if (!isAtEnd) {
-        // Play all 4 Forward
-        viewers.forEach(v => {
-          v.currentTime = 0;
-          v.timeScale = 1;
-          v.play({ repetitions: 1 });
-        });
-
-        // Monitor active viewer for completion
-        const activeViewer = viewers[currentIndex];
-        const checkEnd = () => {
-          if (activeViewer.currentTime >= activeViewer.duration - 0.01) {
-            isAtEnd = true;
-            updateUI();
-          } else if (!isAtEnd) {
-            requestAnimationFrame(checkEnd);
-          }
-        };
-        checkEnd();
-      } else {
-        // Reset all 4 simultaneously
-        viewers.forEach(v => {
-          v.pause();
-          v.currentTime = 0;
-        });
-        isAtEnd = false;
+    // ANIMAÇÃO — agora acionada por qualquer botão overlay
+    playBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (!isAtEnd) {
+          // Rodar animação em todos os viewers
+          viewers.forEach(v => {
+            v.currentTime = 0;
+            v.timeScale = 1;
+            v.play({ repetitions: 1 });
+          });
+          isAtEnd = true;
+        } else {
+          // Voltar ao início
+          viewers.forEach(v => {
+            v.pause();
+            v.currentTime = 0;
+          });
+          isAtEnd = false;
+        }
         updateUI();
-      }
+      });
     });
 
+    // Navegação
     prevBtn.addEventListener('click', () => {
       if (currentIndex > 0) {
         currentIndex--;
         updateUI();
       }
     });
-
     nextBtn.addEventListener('click', () => {
       if (currentIndex < viewers.length - 1) {
         currentIndex++;
@@ -205,7 +205,7 @@
       }
     });
 
-    // Initial State
+    // Inicialização
     updateUI();
   </script>
 </body>
