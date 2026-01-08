@@ -1,164 +1,153 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>3D Model Viewer with AR</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Galeria 3D com RA</title>
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <style>
     body {
       margin: 0;
       height: 100vh;
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      font-family: Arial, sans-serif;
-      background-color: #f0f0f0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f5f5f5;
+      overflow: hidden;
     }
     .viewer-container {
-      width: 100%;
-      height: 80%;
       position: relative;
-      background-color: #e0e0e0;
+      width: 100%;
+      height: 100%;
+      background: #e0e0e0;
     }
     model-viewer {
       width: 100%;
       height: 100%;
       position: absolute;
-      top: 0;
-      left: 0;
-      transition: opacity 0.3s ease;
+      top: 0; left: 0;
+      transition: opacity 0.4s ease;
     }
-    
-    /* Toggle Visibility Classes */
-    model-viewer.active {
-      opacity: 1;
-      pointer-events: auto;
-      z-index: 10;
-    }
-    model-viewer.hidden {
-      opacity: 0;
-      pointer-events: none;
-      z-index: 0;
+    model-viewer.active  { opacity: 1; pointer-events: auto; z-index: 10; }
+    model-viewer.hidden  { opacity: 0; pointer-events: none; z-index: 0; }
+
+    /* Esconde botões de navegação quando estiver em sessão RA (WebXR Android) */
+    model-viewer[ar-status="session-started"] .nav-btn {
+      display: none !important;
     }
 
-    /* Hide the default AR button provided by model-viewer */
-    model-viewer::part(default-ar-button) {
-      display: none;
+    /* Botão RA global */
+    #ar-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 10px 16px;
+      background: white;
+      color: #333;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
     }
-    
-    /* Internal Controls Container */
+
+    /* Controles internos */
     .ar-controls {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      inset: 0;
       pointer-events: none;
       z-index: 1000;
     }
-    
-    /* Ensure buttons work in AR mode */
-    model-viewer .ar-controls * {
-      -webkit-user-select: none;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-    }
-    
-    /* Buttons */
-    .action-btn {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 12px 24px;
-      font-size: 16px;
-      cursor: pointer;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      pointer-events: auto; 
-      transition: all 0.2s ease;
-    }
-    .action-btn:active {
-      background-color: #0056b3;
-      transform: translateX(-50%) scale(0.95);
-    }
-    .action-btn.reverse {
-      background-color: #f4a261;
-    }
-    .action-btn.reverse:active {
-      background-color: #e76f51;
-    }
+    .ar-controls * { pointer-events: auto; }
 
     .nav-btn {
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
-      width: 44px;
-      height: 44px;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
-      background-color: #007bff;
+      background: #007bff;
       color: white;
       border: none;
-      font-size: 20px;
+      font-size: 24px;
       font-weight: bold;
-      cursor: pointer;
       display: flex;
       justify-content: center;
       align-items: center;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      pointer-events: auto;
-      transition: all 0.2s ease;
+      transition: all 0.2s;
     }
-    .nav-btn:active {
-      transform: translateY(-50%) scale(0.9);
-      background-color: #0056b3;
-    }
+    .nav-btn:active { transform: translateY(-50%) scale(0.9); background: #0056b3; }
     .prev-btn { left: 20px; }
     .next-btn { right: 20px; }
-    
-    .ar-btn {
+
+    .action-btn {
       position: absolute;
-      top: 20px;
-      right: 20px;
-      padding: 10px 16px;
-      background-color: white;
-      color: #333;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 14px 28px;
+      font-size: 17px;
+      background: #007bff;
+      color: white;
       border: none;
-      border-radius: 4px;
-      font-weight: bold;
-      cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-      z-index: 2000;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      border-radius: 12px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+      transition: all 0.2s;
     }
-    .ar-btn:hover {
-      background-color: #f8f9fa;
+    .action-btn:active { transform: translateX(-50%) scale(0.95); background: #0056b3; }
+    .action-btn.reverse { background: #f4a261; }
+    .action-btn.reverse:active { background: #e76f51; }
+
+    /* Dica sutil para iOS */
+    .hint {
+      position: absolute;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      pointer-events: none;
+      z-index: 1500;
+      opacity: 0;
+      transition: opacity 0.5s;
     }
+    .hint.show { opacity: 1; }
   </style>
 </head>
 <body>
   <div class="viewer-container">
-    <!-- AR Button (Shared Global) -->
-    <button id="ar-btn" class="ar-btn">
+    <!-- Botão RA global -->
+    <button id="ar-btn">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
         <path d="M17 3H15V5H17C18.1046 5 19 5.89543 19 7V9H21V7C21 4.79086 19.2091 3 17 3Z" fill="currentColor"/>
         <path d="M21 17V15H19V17C19 18.1046 18.1046 19 17 19H15V21H17C19.2091 21 21 19.2091 21 17Z" fill="currentColor"/>
         <path d="M7 21H9V19H7C5.89543 19 5 18.1046 5 17V15H3V17C3 19.2091 4.79086 21 7 21Z" fill="currentColor"/>
       </svg>
-      Ver em AR
+      Ver em RA
     </button>
-    
-    <!-- MODEL VIEWERS - CONTROLS DUPLICATED INSIDE EACH -->
-    
-    <!-- Viewer 0 -->
-    <model-viewer id="mv-0" class="active" src="modelos/01.glb" ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
+
+    <!-- Dica para iOS -->
+    <div class="hint" id="ios-hint">Troque o modelo no 3D View antes de entrar em RA</div>
+
+    <!-- Model Viewers -->
+    <model-viewer id="mv-0" class="active"
+      src="modelos/01.glb"
+      ar ar-modes="webxr scene-viewer quick-look"
+      ar-scale="auto"
+      camera-controls touch-action="pan-y"
+      shadow-intensity="1" exposure="1" shadow-softness="0.5"
+      xr-environment loading="lazy" poster="posters/01.jpg"
+      alt="Modelo 1">
       <div class="ar-controls">
         <button class="nav-btn prev-btn">←</button>
         <button class="nav-btn next-btn">→</button>
@@ -166,8 +155,14 @@
       </div>
     </model-viewer>
 
-    <!-- Viewer 1 -->
-    <model-viewer id="mv-1" class="hidden" src="modelos/02.glb" ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
+    <model-viewer id="mv-1" class="hidden"
+      src="modelos/02.glb"
+      ar ar-modes="webxr scene-viewer quick-look"
+      ar-scale="auto"
+      camera-controls touch-action="pan-y"
+      shadow-intensity="1" exposure="1" shadow-softness="0.5"
+      xr-environment loading="lazy" poster="posters/02.jpg"
+      alt="Modelo 2">
       <div class="ar-controls">
         <button class="nav-btn prev-btn">←</button>
         <button class="nav-btn next-btn">→</button>
@@ -175,8 +170,14 @@
       </div>
     </model-viewer>
 
-    <!-- Viewer 2 -->
-    <model-viewer id="mv-2" class="hidden" src="modelos/03.glb" ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
+    <model-viewer id="mv-2" class="hidden"
+      src="modelos/03.glb"
+      ar ar-modes="webxr scene-viewer quick-look"
+      ar-scale="auto"
+      camera-controls touch-action="pan-y"
+      shadow-intensity="1" exposure="1" shadow-softness="0.5"
+      xr-environment loading="lazy" poster="posters/03.jpg"
+      alt="Modelo 3">
       <div class="ar-controls">
         <button class="nav-btn prev-btn">←</button>
         <button class="nav-btn next-btn">→</button>
@@ -184,127 +185,103 @@
       </div>
     </model-viewer>
 
-    <!-- Viewer 3 -->
-    <model-viewer id="mv-3" class="hidden" src="modelos/04.glb" ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
+    <model-viewer id="mv-3" class="hidden"
+      src="modelos/04.glb"
+      ar ar-modes="webxr scene-viewer quick-look"
+      ar-scale="auto"
+      camera-controls touch-action="pan-y"
+      shadow-intensity="1" exposure="1" shadow-softness="0.5"
+      xr-environment loading="lazy" poster="posters/04.jpg"
+      alt="Modelo 4">
       <div class="ar-controls">
         <button class="nav-btn prev-btn">←</button>
         <button class="nav-btn next-btn">→</button>
         <button class="action-btn">Pendurar</button>
       </div>
     </model-viewer>
-
   </div>
 
-  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <script>
-    // --- MULTI-VIEWER ARCHITECTURE ---
-    const viewers = [
-        document.getElementById('mv-0'),
-        document.getElementById('mv-1'),
-        document.getElementById('mv-2'),
-        document.getElementById('mv-3')
-    ];
+    const viewers = [0,1,2,3].map(i => document.getElementById(`mv-${i}`));
     let currentIndex = 0;
-    let isHung = false; // Estado global: false = Pendurar, true = Voltar
+    let isHung = false;
 
-    // --- DOM ELEMENTS ---
     const allPlayBtns = document.querySelectorAll('.action-btn');
     const allPrevBtns = document.querySelectorAll('.prev-btn');
     const allNextBtns = document.querySelectorAll('.next-btn');
     const arBtn = document.getElementById('ar-btn');
+    const iosHint = document.getElementById('ios-hint');
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-    // --- UPDATE UI ---
-    function updateUI() {
-        // Toggle Viewers visibility
-        viewers.forEach((v, i) => {
-            if (i === currentIndex) {
-                v.classList.add('active');
-                v.classList.remove('hidden');
-            } else {
-                v.classList.add('hidden');
-                v.classList.remove('active');
-            }
-        });
-
-        // Update button text and style
-        allPlayBtns.forEach(btn => {
-            if (isHung) {
-                btn.textContent = 'Voltar';
-                btn.classList.add('reverse');
-            } else {
-                btn.textContent = 'Pendurar';
-                btn.classList.remove('reverse');
-            }
-        });
-
-        // Update nav buttons visibility
-        allPrevBtns.forEach(btn => {
-            btn.style.display = currentIndex === 0 ? 'none' : 'flex';
-        });
-        allNextBtns.forEach(btn => {
-            btn.style.display = currentIndex === viewers.length - 1 ? 'none' : 'flex';
-        });
+    // Mostra dica no iOS por 8 segundos
+    if (isIOS) {
+      iosHint.classList.add('show');
+      setTimeout(() => iosHint.classList.remove('show'), 8000);
     }
 
-    // --- PENDURAR/VOLTAR LOGIC ---
+    function updateUI() {
+      viewers.forEach((v, i) => {
+        v.classList.toggle('active', i === currentIndex);
+        v.classList.toggle('hidden', i !== currentIndex);
+      });
+
+      // Atualiza texto do botão Pendurar/Voltar
+      allPlayBtns.forEach(btn => {
+        btn.textContent = isHung ? 'Voltar' : 'Pendurar';
+        btn.classList.toggle('reverse', isHung);
+      });
+
+      // Navegação nas extremidades
+      allPrevBtns.forEach(btn => btn.style.display = currentIndex === 0 ? 'none' : 'flex');
+      allNextBtns.forEach(btn => btn.style.display = currentIndex === viewers.length - 1 ? 'none' : 'flex');
+    }
+
+    // Lógica Pendurar/Voltar
     allPlayBtns.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            
-            if (!isHung) {
-                // PENDURAR: Play all animations once
-                isHung = true;
-                updateUI();
-                
-                viewers.forEach(v => {
-                    v.currentTime = 0;
-                    v.play({ repetitions: 1 });
-                });
-            } else {
-                // VOLTAR: Reset all to frame 1
-                isHung = false;
-                updateUI();
-                
-                viewers.forEach(v => {
-                    v.pause();
-                    v.currentTime = 0;
-                });
-            }
-        });
-    });
-
-    // --- NAVIGATION LOGIC ---
-    allPrevBtns.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (currentIndex > 0) {
-                currentIndex--;
-                updateUI();
-            }
-        });
-    });
-
-    allNextBtns.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (currentIndex < viewers.length - 1) {
-                currentIndex++;
-                updateUI();
-            }
-        });
-    });
-
-    // --- AR LOGIC ---
-    arBtn.addEventListener('click', () => {
-        const activeViewer = viewers[currentIndex];
-        if (activeViewer.canActivateAR) {
-            activeViewer.activateAR();
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        if (!isHung) {
+          isHung = true;
+          viewers.forEach(v => {
+            v.currentTime = 0;
+            v.play({ repetitions: 1 });
+          });
         } else {
-            alert('AR indisponível neste dispositivo.');
+          isHung = false;
+          viewers.forEach(v => {
+            v.pause();
+            v.currentTime = 0;
+          });
         }
+        updateUI();
+      });
     });
 
-    // --- INIT ---
+    // Navegação
+    allPrevBtns.forEach(btn => btn.addEventListener('click', () => {
+      if (currentIndex > 0) { currentIndex--; updateUI(); }
+    }));
+    allNextBtns.forEach(btn => btn.addEventListener('click', () => {
+      if (currentIndex < viewers.length - 1) { currentIndex++; updateUI(); }
+    }));
+
+    // Botão RA
+    arBtn.addEventListener('click', async () => {
+      const activeViewer = viewers[currentIndex];
+      try {
+        if (await activeViewer.canActivateAR()) {
+          await activeViewer.activateAR();
+        } else {
+          throw new Error();
+        }
+      } catch {
+        alert(isIOS
+          ? 'RA disponível via Quick Look. Troque o modelo no 3D View antes de entrar.'
+          : 'RA não suportada neste dispositivo ou navegador.');
+      }
+    });
+
+    // Inicializa
     updateUI();
   </script>
 </body>
