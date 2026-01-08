@@ -48,7 +48,6 @@
     }
     
     /* Internal Controls Container */
-    /* This sits inside the model-viewer and holds our buttons */
     .ar-controls {
       position: absolute;
       top: 0;
@@ -126,7 +125,7 @@
       font-weight: bold;
       cursor: pointer;
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-      z-index: 2000; /* Above everything */
+      z-index: 2000;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -199,18 +198,17 @@
         document.getElementById('mv-3')
     ];
     let currentIndex = 0;
-    let isHung = false; // Global State
+    let isHung = false; // Estado global: false = Pendurar, true = Voltar
 
-    // --- DOM ELEMENTS (COLLECTIONS) ---
-    // Since controls are duplicated, we select ALL of them
+    // --- DOM ELEMENTS ---
     const allPlayBtns = document.querySelectorAll('.action-btn');
     const allPrevBtns = document.querySelectorAll('.prev-btn');
     const allNextBtns = document.querySelectorAll('.next-btn');
     const arBtn = document.getElementById('ar-btn');
 
-    // --- HELPER: UPDATE VISIBILITY & UI ---
+    // --- UPDATE UI ---
     function updateUI() {
-        // Toggle Viewers
+        // Toggle Viewers visibility
         viewers.forEach((v, i) => {
             if (i === currentIndex) {
                 v.classList.add('active');
@@ -221,7 +219,7 @@
             }
         });
 
-        // Update All Buttons State
+        // Update button text and style
         allPlayBtns.forEach(btn => {
             if (isHung) {
                 btn.textContent = 'Voltar';
@@ -232,7 +230,7 @@
             }
         });
 
-        // Update Nav Buttons (Only hide if needed, logic applies to all)
+        // Update nav buttons visibility
         allPrevBtns.forEach(btn => {
             btn.style.display = currentIndex === 0 ? 'none' : 'flex';
         });
@@ -241,65 +239,51 @@
         });
     }
 
-    // --- CORE LOGIC: HANDLERS ---
-    
-    // Play/Reset Handler (Bind to ALL buttons)
+    // --- PENDURAR/VOLTAR LOGIC ---
     allPlayBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent bubbling issues in AR?
+            e.stopPropagation();
             
             if (!isHung) {
-                // PENDURAR (PLAY ALL)
-                viewers.forEach((v, index) => {
+                // PENDURAR: Play all animations once
+                isHung = true;
+                updateUI();
+                
+                viewers.forEach(v => {
                     v.currentTime = 0;
-                    v.timeScale = 1;
-
-                    // Use the active viewer to detect finish
-                    if (index === currentIndex) {
-                        const onFinish = () => {
-                            isHung = true;
-                            // Clamp all
-                            viewers.forEach(innerV => {
-                                innerV.pause();
-                                innerV.currentTime = innerV.duration;
-                            });
-                            updateUI();
-                            v.removeEventListener('finished', onFinish);
-                        };
-                        v.addEventListener('finished', onFinish);
-                    }
                     v.play({ repetitions: 1 });
                 });
             } else {
-                // VOLTAR (RESET ALL)
+                // VOLTAR: Reset all to frame 1
+                isHung = false;
+                updateUI();
+                
                 viewers.forEach(v => {
                     v.pause();
                     v.currentTime = 0;
                 });
-                isHung = false;
+            }
+        });
+    });
+
+    // --- NAVIGATION LOGIC ---
+    allPrevBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (currentIndex > 0) {
+                currentIndex--;
                 updateUI();
             }
         });
     });
 
-    // Nav Handlers
-    allPrevBtns.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-             e.stopPropagation();
-             if (currentIndex > 0) {
-                 currentIndex--;
-                 updateUI();
-             }
-        });
-    });
-
     allNextBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
-             e.stopPropagation();
-             if (currentIndex < viewers.length - 1) {
-                 currentIndex++;
-                 updateUI();
-             }
+            e.stopPropagation();
+            if (currentIndex < viewers.length - 1) {
+                currentIndex++;
+                updateUI();
+            }
         });
     });
 
