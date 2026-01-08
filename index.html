@@ -27,15 +27,28 @@
       position: absolute;
       top: 0;
       left: 0;
+      transition: opacity 0.3s ease;
     }
     
+    /* Toggle Visibility Classes */
+    model-viewer.active {
+      opacity: 1;
+      pointer-events: auto;
+      z-index: 10;
+    }
+    model-viewer.hidden {
+      opacity: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
     /* Hide the default AR button provided by model-viewer */
     model-viewer::part(default-ar-button) {
       display: none;
     }
     
-    /* Controls Container */
-    .controls-container {
+    /* Controls use a shared container above the viewers effectively */
+    .controls-overlay {
       position: absolute;
       top: 0;
       left: 0;
@@ -45,7 +58,7 @@
       z-index: 1000;
     }
     
-    /* Buttons must have pointer-events auto to be clickable */
+    /* Buttons */
     .action-btn {
       position: absolute;
       bottom: 20px;
@@ -124,6 +137,7 @@
 </head>
 <body>
   <div class="viewer-container">
+    <!-- AR Button (Shared) -->
     <button id="ar-btn" class="ar-btn">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
@@ -134,124 +148,137 @@
       Ver em AR
     </button>
     
-    <!-- SINGLE MODEL VIEWER -->
-    <model-viewer id="main-viewer" src="modelos/01.glb" ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
-      <div class="controls-container">
-        <button class="nav-btn prev-btn">←</button>
-        <button class="nav-btn next-btn">→</button>
-        <button class="action-btn">Pendurar</button>
-      </div>
-    </model-viewer>
+    <!-- MODEL VIEWERS - ALL LOADED -->
+    <!-- Viewer 0 (Active initially) -->
+    <model-viewer id="mv-0" class="active" src="modelos/01.glb" ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false"></model-viewer>
+
+    <!-- Viewer 1 -->
+    <model-viewer id="mv-1" class="hidden" src="modelos/02.glb" ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false"></model-viewer>
+
+    <!-- Viewer 2 -->
+    <model-viewer id="mv-2" class="hidden" src="modelos/03.glb" ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false"></model-viewer>
+
+    <!-- Viewer 3 -->
+    <model-viewer id="mv-3" class="hidden" src="modelos/04.glb" ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false"></model-viewer>
+
+    <!-- UI OVERLAY -->
+    <div class="controls-overlay">
+      <button class="nav-btn prev-btn">←</button>
+      <button class="nav-btn next-btn">→</button>
+      <button class="action-btn">Pendurar</button>
+    </div>
   </div>
 
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <script>
-    const models = [
-      'modelos/01.glb',
-      'modelos/02.glb',
-      'modelos/03.glb',
-      'modelos/04.glb'
+    // --- MULTI-VIEWER ARCHITECTURE ---
+    const viewers = [
+        document.getElementById('mv-0'),
+        document.getElementById('mv-1'),
+        document.getElementById('mv-2'),
+        document.getElementById('mv-3')
     ];
     let currentIndex = 0;
-    let isAtEnd = false; // "Pendurado" state
+    
+    // Global Loop State
+    let isHung = false;
 
-    const viewer = document.getElementById('main-viewer');
+    // --- DOM ELEMENTS (SHARED) ---
     const playBtn = document.querySelector('.action-btn');
     const prevBtn = document.querySelector('.prev-btn');
     const nextBtn = document.querySelector('.next-btn');
     const arBtn = document.getElementById('ar-btn');
 
-    function updateUI() {
-      // Buttons
-      if (isAtEnd) {
-        playBtn.textContent = 'Voltar';
-        playBtn.classList.add('reverse');
-      } else {
-        playBtn.textContent = 'Pendurar';
-        playBtn.classList.remove('reverse');
-      }
-
-      // Arrows
-      prevBtn.style.display = currentIndex === 0 ? 'none' : 'flex';
-      nextBtn.style.display = currentIndex === models.length - 1 ? 'none' : 'flex';
-    }
-
-    function switchModel(newIndex) {
-      if (newIndex < 0 || newIndex >= models.length) return;
-
-      // 1. Capture Animation State
-      const wasPlaying = !viewer.paused;
-      const currentTime = viewer.currentTime;
-      
-      // 2. Switch Source
-      currentIndex = newIndex;
-      const nextModel = models[currentIndex];
-      viewer.src = nextModel;
-
-      // 3. Restore Animation State (Once loaded)
-      // model-viewer resets time on src change, so we force it back
-      const onHook = () => {
-        viewer.currentTime = isAtEnd ? (viewer.duration > 0 ? viewer.duration - 0.01 : 100) : currentTime;
-        
-        // If we were "Pendurado", ensure we are paused at the end
-        if (isAtEnd) {
-            viewer.pause();
-        }
-        // If Play was active and not at end (unlikely given design, but good practice)
-        else if (wasPlaying) {
-             viewer.play({ repetitions: 1 });
-        }
-        // Remove self
-        viewer.removeEventListener('load', onHook);
-      };
-      
-      viewer.addEventListener('load', onHook);
-      updateUI();
-    }
-
-    // Play/Reset Handler
-    playBtn.addEventListener('click', () => {
-      // If "Pendurar" (Play)
-      if (!isAtEnd) {
-        viewer.timeScale = 1;
-        viewer.currentTime = 0;
-        viewer.play({ repetitions: 1 });
-        
-        // Simple check for end
-        const checkEnd = () => {
-            if (viewer.duration > 0 && viewer.currentTime >= viewer.duration - 0.05) {
-                isAtEnd = true;
-                updateUI();
-            } else if (!isAtEnd) {
-                requestAnimationFrame(checkEnd);
+    // --- HELPER: UPDATE VISIBILITY ---
+    function updateVisibility() {
+        viewers.forEach((v, i) => {
+            if (i === currentIndex) {
+                v.classList.add('active');
+                v.classList.remove('hidden');
+            } else {
+                v.classList.add('hidden');
+                v.classList.remove('active');
             }
-        };
-        checkEnd();
-      } 
-      // If "Voltar" (Reset)
-      else {
-        viewer.pause();
-        viewer.currentTime = 0;
-        isAtEnd = false;
-        updateUI();
-      }
-    });
+        });
 
-    // Navigation
-    prevBtn.addEventListener('click', () => switchModel(currentIndex - 1));
-    nextBtn.addEventListener('click', () => switchModel(currentIndex + 1));
+        // Navigation UI
+        prevBtn.style.display = currentIndex === 0 ? 'none' : 'flex';
+        nextBtn.style.display = currentIndex === viewers.length - 1 ? 'none' : 'flex';
 
-    // AR Activation
-    arBtn.addEventListener('click', () => {
-        if (viewer.canActivateAR) {
-            viewer.activateAR();
+        // Play Button Text
+        if (isHung) {
+            playBtn.textContent = 'Voltar';
+            playBtn.classList.add('reverse');
         } else {
-            alert("AR não está disponível.");
+            playBtn.textContent = 'Pendurar';
+            playBtn.classList.remove('reverse');
+        }
+    }
+
+    // --- CORE LOGIC: PLAY ALL SIMULTANEOUSLY ---
+    playBtn.addEventListener('click', () => {
+        if (!isHung) {
+            // ACTION: PENDURAR (PLAY ALL)
+            viewers.forEach((v, index) => {
+                v.currentTime = 0;
+                v.timeScale = 1;
+                
+                // IMPORTANT: We use the active viewer for the callback to unlock UI
+                // But we play ALL of them.
+                if (index === currentIndex) {
+                    const onFinish = () => {
+                        isHung = true;
+                        updateVisibility(); 
+                        // Clamp all to end to be safe
+                        viewers.forEach(innerV => {
+                            innerV.pause();
+                            innerV.currentTime = innerV.duration; 
+                        });
+                        v.removeEventListener('finished', onFinish);
+                    };
+                    v.addEventListener('finished', onFinish);
+                }
+                
+                v.play({ repetitions: 1 });
+            });
+        } else {
+            // ACTION: VOLTAR (RESET ALL)
+            viewers.forEach(v => {
+                v.pause();
+                v.currentTime = 0;
+            });
+            isHung = false;
+            updateVisibility();
         }
     });
 
-    // Init
-    updateUI();
+    // --- NAVIGATION ---
+    prevBtn.addEventListener('click', () => {
+        if (currentIndex > 0) {
+            currentIndex--;
+            updateVisibility();
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if (currentIndex < viewers.length - 1) {
+            currentIndex++;
+            updateVisibility();
+        }
+    });
+
+    // --- AR LOGIC ---
+    arBtn.addEventListener('click', () => {
+        const activeViewer = viewers[currentIndex];
+        if (activeViewer.canActivateAR) {
+            activeViewer.activateAR();
+        } else {
+            alert('AR indisponível neste dispositivo.');
+        }
+    });
+
+    // --- INIT ---
+    updateVisibility();
   </script>
 </body>
 </html>
