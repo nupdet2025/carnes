@@ -47,8 +47,9 @@
       display: none;
     }
     
-    /* Controls use a shared container above the viewers effectively */
-    .controls-overlay {
+    /* Internal Controls Container */
+    /* This sits inside the model-viewer and holds our buttons */
+    .ar-controls {
       position: absolute;
       top: 0;
       left: 0;
@@ -137,7 +138,7 @@
 </head>
 <body>
   <div class="viewer-container">
-    <!-- AR Button (Shared) -->
+    <!-- AR Button (Shared Global) -->
     <button id="ar-btn" class="ar-btn">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
@@ -148,25 +149,44 @@
       Ver em AR
     </button>
     
-    <!-- MODEL VIEWERS - ALL LOADED -->
-    <!-- Viewer 0 (Active initially) -->
-    <model-viewer id="mv-0" class="active" src="modelos/01.glb" ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false"></model-viewer>
+    <!-- MODEL VIEWERS - CONTROLS DUPLICATED INSIDE EACH -->
+    
+    <!-- Viewer 0 -->
+    <model-viewer id="mv-0" class="active" src="modelos/01.glb" ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
+      <div class="ar-controls">
+        <button class="nav-btn prev-btn">←</button>
+        <button class="nav-btn next-btn">→</button>
+        <button class="action-btn">Pendurar</button>
+      </div>
+    </model-viewer>
 
     <!-- Viewer 1 -->
-    <model-viewer id="mv-1" class="hidden" src="modelos/02.glb" ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false"></model-viewer>
+    <model-viewer id="mv-1" class="hidden" src="modelos/02.glb" ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
+      <div class="ar-controls">
+        <button class="nav-btn prev-btn">←</button>
+        <button class="nav-btn next-btn">→</button>
+        <button class="action-btn">Pendurar</button>
+      </div>
+    </model-viewer>
 
     <!-- Viewer 2 -->
-    <model-viewer id="mv-2" class="hidden" src="modelos/03.glb" ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false"></model-viewer>
+    <model-viewer id="mv-2" class="hidden" src="modelos/03.glb" ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
+      <div class="ar-controls">
+        <button class="nav-btn prev-btn">←</button>
+        <button class="nav-btn next-btn">→</button>
+        <button class="action-btn">Pendurar</button>
+      </div>
+    </model-viewer>
 
     <!-- Viewer 3 -->
-    <model-viewer id="mv-3" class="hidden" src="modelos/04.glb" ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false"></model-viewer>
+    <model-viewer id="mv-3" class="hidden" src="modelos/04.glb" ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
+      <div class="ar-controls">
+        <button class="nav-btn prev-btn">←</button>
+        <button class="nav-btn next-btn">→</button>
+        <button class="action-btn">Pendurar</button>
+      </div>
+    </model-viewer>
 
-    <!-- UI OVERLAY -->
-    <div class="controls-overlay">
-      <button class="nav-btn prev-btn">←</button>
-      <button class="nav-btn next-btn">→</button>
-      <button class="action-btn">Pendurar</button>
-    </div>
   </div>
 
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
@@ -179,18 +199,18 @@
         document.getElementById('mv-3')
     ];
     let currentIndex = 0;
-    
-    // Global Loop State
-    let isHung = false;
+    let isHung = false; // Global State
 
-    // --- DOM ELEMENTS (SHARED) ---
-    const playBtn = document.querySelector('.action-btn');
-    const prevBtn = document.querySelector('.prev-btn');
-    const nextBtn = document.querySelector('.next-btn');
+    // --- DOM ELEMENTS (COLLECTIONS) ---
+    // Since controls are duplicated, we select ALL of them
+    const allPlayBtns = document.querySelectorAll('.action-btn');
+    const allPrevBtns = document.querySelectorAll('.prev-btn');
+    const allNextBtns = document.querySelectorAll('.next-btn');
     const arBtn = document.getElementById('ar-btn');
 
-    // --- HELPER: UPDATE VISIBILITY ---
-    function updateVisibility() {
+    // --- HELPER: UPDATE VISIBILITY & UI ---
+    function updateUI() {
+        // Toggle Viewers
         viewers.forEach((v, i) => {
             if (i === currentIndex) {
                 v.classList.add('active');
@@ -201,70 +221,86 @@
             }
         });
 
-        // Navigation UI
-        prevBtn.style.display = currentIndex === 0 ? 'none' : 'flex';
-        nextBtn.style.display = currentIndex === viewers.length - 1 ? 'none' : 'flex';
+        // Update All Buttons State
+        allPlayBtns.forEach(btn => {
+            if (isHung) {
+                btn.textContent = 'Voltar';
+                btn.classList.add('reverse');
+            } else {
+                btn.textContent = 'Pendurar';
+                btn.classList.remove('reverse');
+            }
+        });
 
-        // Play Button Text
-        if (isHung) {
-            playBtn.textContent = 'Voltar';
-            playBtn.classList.add('reverse');
-        } else {
-            playBtn.textContent = 'Pendurar';
-            playBtn.classList.remove('reverse');
-        }
+        // Update Nav Buttons (Only hide if needed, logic applies to all)
+        allPrevBtns.forEach(btn => {
+            btn.style.display = currentIndex === 0 ? 'none' : 'flex';
+        });
+        allNextBtns.forEach(btn => {
+            btn.style.display = currentIndex === viewers.length - 1 ? 'none' : 'flex';
+        });
     }
 
-    // --- CORE LOGIC: PLAY ALL SIMULTANEOUSLY ---
-    playBtn.addEventListener('click', () => {
-        if (!isHung) {
-            // ACTION: PENDURAR (PLAY ALL)
-            viewers.forEach((v, index) => {
-                v.currentTime = 0;
-                v.timeScale = 1;
-                
-                // IMPORTANT: We use the active viewer for the callback to unlock UI
-                // But we play ALL of them.
-                if (index === currentIndex) {
-                    const onFinish = () => {
-                        isHung = true;
-                        updateVisibility(); 
-                        // Clamp all to end to be safe
-                        viewers.forEach(innerV => {
-                            innerV.pause();
-                            innerV.currentTime = innerV.duration; 
-                        });
-                        v.removeEventListener('finished', onFinish);
-                    };
-                    v.addEventListener('finished', onFinish);
-                }
-                
-                v.play({ repetitions: 1 });
-            });
-        } else {
-            // ACTION: VOLTAR (RESET ALL)
-            viewers.forEach(v => {
-                v.pause();
-                v.currentTime = 0;
-            });
-            isHung = false;
-            updateVisibility();
-        }
+    // --- CORE LOGIC: HANDLERS ---
+    
+    // Play/Reset Handler (Bind to ALL buttons)
+    allPlayBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent bubbling issues in AR?
+            
+            if (!isHung) {
+                // PENDURAR (PLAY ALL)
+                viewers.forEach((v, index) => {
+                    v.currentTime = 0;
+                    v.timeScale = 1;
+
+                    // Use the active viewer to detect finish
+                    if (index === currentIndex) {
+                        const onFinish = () => {
+                            isHung = true;
+                            // Clamp all
+                            viewers.forEach(innerV => {
+                                innerV.pause();
+                                innerV.currentTime = innerV.duration;
+                            });
+                            updateUI();
+                            v.removeEventListener('finished', onFinish);
+                        };
+                        v.addEventListener('finished', onFinish);
+                    }
+                    v.play({ repetitions: 1 });
+                });
+            } else {
+                // VOLTAR (RESET ALL)
+                viewers.forEach(v => {
+                    v.pause();
+                    v.currentTime = 0;
+                });
+                isHung = false;
+                updateUI();
+            }
+        });
     });
 
-    // --- NAVIGATION ---
-    prevBtn.addEventListener('click', () => {
-        if (currentIndex > 0) {
-            currentIndex--;
-            updateVisibility();
-        }
+    // Nav Handlers
+    allPrevBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+             e.stopPropagation();
+             if (currentIndex > 0) {
+                 currentIndex--;
+                 updateUI();
+             }
+        });
     });
 
-    nextBtn.addEventListener('click', () => {
-        if (currentIndex < viewers.length - 1) {
-            currentIndex++;
-            updateVisibility();
-        }
+    allNextBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+             e.stopPropagation();
+             if (currentIndex < viewers.length - 1) {
+                 currentIndex++;
+                 updateUI();
+             }
+        });
     });
 
     // --- AR LOGIC ---
@@ -278,7 +314,7 @@
     });
 
     // --- INIT ---
-    updateVisibility();
+    updateUI();
   </script>
 </body>
 </html>
