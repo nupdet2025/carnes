@@ -206,18 +206,6 @@
     ];
     let currentIndex = 0;
     let isHung = false; // Estado global: false = Pendurar, true = Voltar
-    let activeARViewer = null; // Rastrear qual viewer está em AR
-
-    // Rastrear quando entramos/saímos do AR
-    viewers.forEach(v => {
-        v.addEventListener('ar-status', (event) => {
-            if (event.detail.status === 'session-started') {
-                activeARViewer = v;
-            } else if (event.detail.status === 'not-presenting') {
-                activeARViewer = null;
-            }
-        });
-    });
 
     // --- DOM ELEMENTS ---
     const allPlayBtns = document.querySelectorAll('.action-btn');
@@ -286,49 +274,12 @@
     });
 
     // --- NAVIGATION LOGIC ---
-    // Array com os caminhos dos modelos
-    const modelPaths = [
-        'modelos/01.glb',
-        'modelos/02.glb',
-        'modelos/03.glb',
-        'modelos/04.glb'
-    ];
-
-    // Função para trocar modelo (funciona em 3D e AR)
-    function switchModel(newIndex) {
-        if (newIndex < 0 || newIndex >= viewers.length) return;
-        
-        currentIndex = newIndex;
-        
-        if (activeARViewer) {
-            // ESTAMOS EM AR: Trocar o src do viewer ativo
-            activeARViewer.src = modelPaths[currentIndex];
-            
-            // Aplicar estado de animação ao novo modelo
-            if (isHung) {
-                // Se estava pendurado, tocar animação do novo modelo
-                setTimeout(() => {
-                    activeARViewer.currentTime = 0;
-                    activeARViewer.play({ repetitions: 1 });
-                }, 100);
-            } else {
-                // Se estava resetado, garantir frame 1
-                setTimeout(() => {
-                    activeARViewer.pause();
-                    activeARViewer.currentTime = 0;
-                }, 100);
-            }
-        } else {
-            // ESTAMOS EM 3D: Usar lógica normal de hide/show
-            updateUI();
-        }
-    }
-
     allPrevBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
             if (currentIndex > 0) {
-                switchModel(currentIndex - 1);
+                currentIndex--;
+                updateUI();
             }
         });
     });
@@ -337,7 +288,8 @@
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
             if (currentIndex < viewers.length - 1) {
-                switchModel(currentIndex + 1);
+                currentIndex++;
+                updateUI();
             }
         });
     });
