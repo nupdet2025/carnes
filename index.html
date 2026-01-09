@@ -35,16 +35,14 @@
       opacity: 1;
       pointer-events: auto;
     }
-
     /* Esconde o botão AR padrão */
     model-viewer::part(default-ar-button) {
       display: none !important;
     }
-
     /* Botão Ver em RA reposicionado para canto SUPERIOR direito */
     .custom-ar-button {
       position: absolute;
-      top: 20px;         /* Alterado de bottom para top */
+      top: 20px; /* Alterado de bottom para top */
       right: 20px;
       padding: 12px 20px;
       background: white;
@@ -59,12 +57,10 @@
       cursor: pointer;
       z-index: 1000;
     }
-
     /* Garante que o botão AR só apareça no viewer ativo */
     model-viewer:not(.active) .custom-ar-button {
       display: none !important;
     }
-
     /* Navegação lateral */
     .nav-side-btn {
       position: absolute;
@@ -89,7 +85,6 @@
     .nav-side-btn:active { transform: translateY(-50%) scale(0.9); background-color: #0056b3; }
     #prev-btn { left: 20px; }
     #next-btn { right: 20px; }
-
     /* Botão de animação (Pendurar / Voltar) */
     .animation-overlay-btn {
       position: absolute;
@@ -117,9 +112,8 @@
     <!-- Navegação lateral -->
     <button id="prev-btn" class="nav-side-btn" style="display: none;">←</button>
     <button id="next-btn" class="nav-side-btn">→</button>
-
     <!-- Model Viewers -->
-    <model-viewer id="mv-0" src="modelos/01.glb" ar ar-modes="webxr scene-viewer quick-look"
+    <model-viewer id="mv-0" src="modelos/01.glb" ios-src="modelos/01.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y" class="active">
       <button slot="ar-button" class="custom-ar-button">
@@ -133,8 +127,7 @@
       </button>
       <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
-
-    <model-viewer id="mv-1" src="modelos/02.glb" ar ar-modes="webxr scene-viewer quick-look"
+    <model-viewer id="mv-1" src="modelos/02.glb" ios-src="modelos/02.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y">
       <button slot="ar-button" class="custom-ar-button">
@@ -148,8 +141,7 @@
       </button>
       <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
-
-    <model-viewer id="mv-2" src="modelos/03.glb" ar ar-modes="webxr scene-viewer quick-look"
+    <model-viewer id="mv-2" src="modelos/03.glb" ios-src="modelos/03.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y">
       <button slot="ar-button" class="custom-ar-button">
@@ -163,8 +155,7 @@
       </button>
       <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
-
-    <model-viewer id="mv-3" src="modelos/04.glb" ar ar-modes="webxr scene-viewer quick-look"
+    <model-viewer id="mv-3" src="modelos/04.glb" ios-src="modelos/04.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y">
       <button slot="ar-button" class="custom-ar-button">
@@ -179,7 +170,6 @@
       <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
   </div>
-
   <script>
     const viewers = [
       document.getElementById('mv-0'),
@@ -189,24 +179,19 @@
     ];
     let currentIndex = 0;
     let isAtEnd = false;
-
     const playBtns = document.querySelectorAll('.animation-overlay-btn');
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
-
     function updateUI() {
       viewers.forEach((v, i) => v.classList.toggle('active', i === currentIndex));
-
       prevBtn.style.display = currentIndex === 0 ? 'none' : 'flex';
       nextBtn.style.display = currentIndex === viewers.length - 1 ? 'none' : 'flex';
-
       // Atualiza texto dos botões de animação
       playBtns.forEach(btn => {
         btn.textContent = isAtEnd ? 'Voltar' : 'Pendurar';
         btn.classList.toggle('reverse', isAtEnd);
       });
     }
-
     // Sincronização contínua de câmera
     viewers.forEach((v, i) => {
       v.addEventListener('camera-change', () => {
@@ -217,7 +202,6 @@
         });
       });
     });
-
     // Animação (Pendurar / Voltar)
     playBtns.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -238,7 +222,6 @@
         updateUI();
       });
     });
-
     // Navegação
     prevBtn.addEventListener('click', () => {
       if (currentIndex > 0) { currentIndex--; updateUI(); }
@@ -246,7 +229,6 @@
     nextBtn.addEventListener('click', () => {
       if (currentIndex < viewers.length - 1) { currentIndex++; updateUI(); }
     });
-
     // Inicialização
     updateUI();
   </script>
