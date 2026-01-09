@@ -233,7 +233,7 @@
       if (currentIndex < viewers.length - 1) { currentIndex++; updateUI(); }
     });
 
-    // Clique no botão "Ver em RA" - versão estável, sem mudança dinâmica no ios-src
+    // Clique no botão "Ver em RA" - versão estável sem mudança dinâmica
     document.querySelectorAll('.custom-ar-button').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         e.stopPropagation();
@@ -244,7 +244,7 @@
             await viewer.activateAR();
           } catch (err) {
             console.error('Erro ao ativar Quick Look:', err);
-            alert('Não foi possível abrir o modo RA no iOS.\nVerifique HTTPS, arquivos .usdz e Safari atualizado.');
+            alert('Não foi possível abrir o modo RA no iOS.\n\nVerifique:\n- HTTPS\n- Arquivos .usdz no caminho correto\n- Safari atualizado');
           }
         } else {
           if (await viewer.canActivateAR()) {
