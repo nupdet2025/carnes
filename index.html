@@ -149,9 +149,14 @@
     <model-viewer id="mv-0" class="active"
       src="modelos/01.glb"
       ios-src="modelos/01.usdz"
-      ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto"
-      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
-      animation-loop="false" xr-environment poster="posters/01.jpg">
+      ar ar-modes="webxr scene-viewer quick-look"
+      ar-scale="auto"
+      camera-controls
+      shadow-intensity="1"
+      camera-orbit="45deg 55deg 2.5m"
+      animation-loop="false"
+      xr-environment
+      poster="posters/01.jpg">
       <div class="ar-controls">
         <button class="nav-btn prev-btn">←</button>
         <button class="nav-btn next-btn">→</button>
@@ -163,9 +168,14 @@
     <model-viewer id="mv-1" class="hidden"
       src="modelos/02.glb"
       ios-src="modelos/02.usdz"
-      ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto"
-      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
-      animation-loop="false" xr-environment poster="posters/02.jpg">
+      ar ar-modes="webxr scene-viewer quick-look"
+      ar-scale="auto"
+      camera-controls
+      shadow-intensity="1"
+      camera-orbit="45deg 55deg 2.5m"
+      animation-loop="false"
+      xr-environment
+      poster="posters/02.jpg">
       <div class="ar-controls">
         <button class="nav-btn prev-btn">←</button>
         <button class="nav-btn next-btn">→</button>
@@ -177,9 +187,14 @@
     <model-viewer id="mv-2" class="hidden"
       src="modelos/03.glb"
       ios-src="modelos/03.usdz"
-      ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto"
-      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
-      animation-loop="false" xr-environment poster="posters/03.jpg">
+      ar ar-modes="webxr scene-viewer quick-look"
+      ar-scale="auto"
+      camera-controls
+      shadow-intensity="1"
+      camera-orbit="45deg 55deg 2.5m"
+      animation-loop="false"
+      xr-environment
+      poster="posters/03.jpg">
       <div class="ar-controls">
         <button class="nav-btn prev-btn">←</button>
         <button class="nav-btn next-btn">→</button>
@@ -191,9 +206,14 @@
     <model-viewer id="mv-3" class="hidden"
       src="modelos/04.glb"
       ios-src="modelos/04.usdz"
-      ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto"
-      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
-      animation-loop="false" xr-environment poster="posters/04.jpg">
+      ar ar-modes="webxr scene-viewer quick-look"
+      ar-scale="auto"
+      camera-controls
+      shadow-intensity="1"
+      camera-orbit="45deg 55deg 2.5m"
+      animation-loop="false"
+      xr-environment
+      poster="posters/04.jpg">
       <div class="ar-controls">
         <button class="nav-btn prev-btn">←</button>
         <button class="nav-btn next-btn">→</button>
@@ -300,19 +320,27 @@
       });
     });
 
-    // --- AR LOGIC ---
+    // --- AR LOGIC (CORRIGIDO PARA FUNCIONAR NO iOS) ---
     arBtn.addEventListener('click', async () => {
       const activeViewer = viewers[currentIndex];
-      try {
-        if (await activeViewer.canActivateAR()) {
+
+      if (isIOS) {
+        // No iOS: chama diretamente activateAR() (Quick Look não depende de canActivateAR)
+        try {
           await activeViewer.activateAR();
-        } else {
-          throw new Error('AR não suportado');
+        } catch (err) {
+          console.error('Erro ao ativar Quick Look:', err);
+          alert('Não foi possível abrir o modo RA.\n\nPossíveis causas:\n- Página não está em HTTPS\n- Arquivo .usdz não encontrado ou corrompido\n- Modelo muito pesado\n- Safari precisa ser atualizado\n\nTeste abrindo o .usdz diretamente via AirDrop.');
         }
-      } catch (err) {
-        if (isIOS) {
-          alert('RA disponível via Quick Look.\n\nObservação: os botões de navegação e animação não estarão visíveis durante o modo RA no iOS.');
-        } else {
+      } else {
+        // Android: mantém verificação de suporte ARCore/WebXR
+        try {
+          if (await activeViewer.canActivateAR()) {
+            await activeViewer.activateAR();
+          } else {
+            throw new Error('AR não suportado');
+          }
+        } catch (err) {
           alert('RA não está disponível neste dispositivo.\nVerifique se o Chrome está atualizado e o aparelho suporta ARCore.');
         }
       }
