@@ -35,14 +35,16 @@
       opacity: 1;
       pointer-events: auto;
     }
+
     /* Esconde o botão AR padrão */
     model-viewer::part(default-ar-button) {
       display: none !important;
     }
+
     /* Botão Ver em RA reposicionado para canto SUPERIOR direito */
     .custom-ar-button {
       position: absolute;
-      top: 20px;
+      top: 20px;         /* Alterado de bottom para top */
       right: 20px;
       padding: 12px 20px;
       background: white;
@@ -57,10 +59,12 @@
       cursor: pointer;
       z-index: 1000;
     }
+
     /* Garante que o botão AR só apareça no viewer ativo */
     model-viewer:not(.active) .custom-ar-button {
       display: none !important;
     }
+
     /* Navegação lateral */
     .nav-side-btn {
       position: absolute;
@@ -85,6 +89,7 @@
     .nav-side-btn:active { transform: translateY(-50%) scale(0.9); background-color: #0056b3; }
     #prev-btn { left: 20px; }
     #next-btn { right: 20px; }
+
     /* Botão de animação (Pendurar / Voltar) */
     .animation-overlay-btn {
       position: absolute;
@@ -109,22 +114,14 @@
 </head>
 <body>
   <div class="viewer-container">
-    <!-- Navegação lateral (global) -->
+    <!-- Navegação lateral -->
     <button id="prev-btn" class="nav-side-btn" style="display: none;">←</button>
     <button id="next-btn" class="nav-side-btn">→</button>
 
-    <!-- Viewer 0 -->
-    <model-viewer id="mv-0" class="active"
-      src="modelos/01.glb"
-      ios-src="modelos/01.usdz"
-      ar ar-modes="webxr scene-viewer quick-look"
-      ar-scale="auto"
-      camera-controls
-      shadow-intensity="1"
-      camera-orbit="45deg 55deg 2.5m"
-      animation-loop="false"
-      touch-action="pan-y"
-      xr-environment>
+    <!-- Model Viewers -->
+    <model-viewer id="mv-0" src="modelos/01.glb" ar ar-modes="webxr scene-viewer quick-look"
+      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
+      animation-loop="false" touch-action="pan-y" class="active">
       <button slot="ar-button" class="custom-ar-button">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
@@ -137,18 +134,9 @@
       <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
 
-    <!-- Viewer 1 -->
-    <model-viewer id="mv-1"
-      src="modelos/02.glb"
-      ios-src="modelos/02.usdz"
-      ar ar-modes="webxr scene-viewer quick-look"
-      ar-scale="auto"
-      camera-controls
-      shadow-intensity="1"
-      camera-orbit="45deg 55deg 2.5m"
-      animation-loop="false"
-      touch-action="pan-y"
-      xr-environment>
+    <model-viewer id="mv-1" src="modelos/02.glb" ar ar-modes="webxr scene-viewer quick-look"
+      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
+      animation-loop="false" touch-action="pan-y">
       <button slot="ar-button" class="custom-ar-button">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
@@ -161,18 +149,9 @@
       <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
 
-    <!-- Viewer 2 -->
-    <model-viewer id="mv-2"
-      src="modelos/03.glb"
-      ios-src="modelos/03.usdz"
-      ar ar-modes="webxr scene-viewer quick-look"
-      ar-scale="auto"
-      camera-controls
-      shadow-intensity="1"
-      camera-orbit="45deg 55deg 2.5m"
-      animation-loop="false"
-      touch-action="pan-y"
-      xr-environment>
+    <model-viewer id="mv-2" src="modelos/03.glb" ar ar-modes="webxr scene-viewer quick-look"
+      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
+      animation-loop="false" touch-action="pan-y">
       <button slot="ar-button" class="custom-ar-button">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
@@ -185,18 +164,9 @@
       <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
 
-    <!-- Viewer 3 -->
-    <model-viewer id="mv-3"
-      src="modelos/04.glb"
-      ios-src="modelos/04.usdz"
-      ar ar-modes="webxr scene-viewer quick-look"
-      ar-scale="auto"
-      camera-controls
-      shadow-intensity="1"
-      camera-orbit="45deg 55deg 2.5m"
-      animation-loop="false"
-      touch-action="pan-y"
-      xr-environment>
+    <model-viewer id="mv-3" src="modelos/04.glb" ar ar-modes="webxr scene-viewer quick-look"
+      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
+      animation-loop="false" touch-action="pan-y">
       <button slot="ar-button" class="custom-ar-button">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
@@ -224,15 +194,13 @@
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
 
-    // DETECÇÃO DE iOS
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) &&
-                  !/CriOS/.test(navigator.userAgent) &&
-                  !/FxiOS/.test(navigator.userAgent);
-
     function updateUI() {
       viewers.forEach((v, i) => v.classList.toggle('active', i === currentIndex));
+
       prevBtn.style.display = currentIndex === 0 ? 'none' : 'flex';
       nextBtn.style.display = currentIndex === viewers.length - 1 ? 'none' : 'flex';
+
+      // Atualiza texto dos botões de animação
       playBtns.forEach(btn => {
         btn.textContent = isAtEnd ? 'Voltar' : 'Pendurar';
         btn.classList.toggle('reverse', isAtEnd);
@@ -277,29 +245,6 @@
     });
     nextBtn.addEventListener('click', () => {
       if (currentIndex < viewers.length - 1) { currentIndex++; updateUI(); }
-    });
-
-    // Clique no botão "Ver em RA" customizado
-    document.querySelectorAll('.custom-ar-button').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        const viewer = viewers[currentIndex];
-
-        if (isIOS) {
-          try {
-            await viewer.activateAR();
-          } catch (err) {
-            console.error('Quick Look falhou:', err);
-            alert('Não foi possível abrir o modo RA.\n\nVerifique:\n- HTTPS\n- Arquivo .usdz acessível\n- Safari atualizado');
-          }
-        } else {
-          if (await viewer.canActivateAR()) {
-            await viewer.activateAR();
-          } else {
-            alert('RA não disponível. Verifique Chrome e suporte ARCore.');
-          }
-        }
-      });
     });
 
     // Inicialização
