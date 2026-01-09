@@ -113,7 +113,7 @@
     <button id="prev-btn" class="nav-side-btn" style="display: none;">←</button>
     <button id="next-btn" class="nav-side-btn">→</button>
     <!-- Model Viewers -->
-    <model-viewer id="mv-0" src="modelos/01.glb" ar ar-modes="webxr scene-viewer quick-look"
+    <model-viewer id="mv-0" src="modelos/01.glb" ios-src="modelos/01.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y" class="active">
       <button slot="ar-button" class="custom-ar-button">
@@ -127,7 +127,7 @@
       </button>
       <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
-    <model-viewer id="mv-1" src="modelos/02.glb" ar ar-modes="webxr scene-viewer quick-look"
+    <model-viewer id="mv-1" src="modelos/02.glb" ios-src="modelos/02.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y">
       <button slot="ar-button" class="custom-ar-button">
@@ -141,7 +141,7 @@
       </button>
       <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
-    <model-viewer id="mv-2" src="modelos/03.glb" ar ar-modes="webxr scene-viewer quick-look"
+    <model-viewer id="mv-2" src="modelos/03.glb" ios-src="modelos/03.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y">
       <button slot="ar-button" class="custom-ar-button">
@@ -155,8 +155,109 @@
       </button>
       <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
-    <model-viewer id="mv-3" src="modelos/04.glb" ar ar-modes="webxr scene-viewer quick-look"
+    <model-viewer id="mv-3" src="modelos/04.glb" ios-src="modelos/04.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y">
       <button slot="ar-button" class="custom-ar-button">
-        <svg width="24" height="24" viewBox="
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
+          <path d="M17 3H15V5H17C18.1046 5 19 5.89543 19 7V9H21V7C21 4.79086 19.2091 3 17 3Z" fill="currentColor"/>
+          <path d="M21 17V15H19V17C19 18.1046 18.1046 19 17 19H15V21H17C19.2091 21 21 19.2091 21 17Z" fill="currentColor"/>
+          <path d="M7 21H9V19H7C5.89543 19 5 18.1046 5 17V15H3V17C3 19.2091 4.79086 21 7 21Z" fill="currentColor"/>
+        </svg>
+        Ver em RA
+      </button>
+      <button class="animation-overlay-btn">Pendurar</button>
+    </model-viewer>
+  </div>
+  <script>
+    const viewers = [
+      document.getElementById('mv-0'),
+      document.getElementById('mv-1'),
+      document.getElementById('mv-2'),
+      document.getElementById('mv-3')
+    ];
+    let currentIndex = 0;
+    let isAtEnd = false;
+    const playBtns = document.querySelectorAll('.animation-overlay-btn');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+
+    function updateUI() {
+      viewers.forEach((v, i) => v.classList.toggle('active', i === currentIndex));
+      prevBtn.style.display = currentIndex === 0 ? 'none' : 'flex';
+      nextBtn.style.display = currentIndex === viewers.length - 1 ? 'none' : 'flex';
+      playBtns.forEach(btn => {
+        btn.textContent = isAtEnd ? 'Voltar' : 'Pendurar';
+        btn.classList.toggle('reverse', isAtEnd);
+      });
+    }
+
+    // Sincronização contínua de câmera
+    viewers.forEach((v, i) => {
+      v.addEventListener('camera-change', () => {
+        if (i !== currentIndex) return;
+        const orbit = v.getCameraOrbit().toString();
+        viewers.forEach((other, j) => {
+          if (j !== currentIndex) other.cameraOrbit = orbit;
+        });
+      });
+    });
+
+    // Animação (Pendurar / Voltar)
+    playBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (!isAtEnd) {
+          viewers.forEach(v => {
+            v.currentTime = 0;
+            v.timeScale = 1;
+            v.play({ repetitions: 1 });
+          });
+          isAtEnd = true;
+        } else {
+          viewers.forEach(v => {
+            v.pause();
+            v.currentTime = 0;
+          });
+          isAtEnd = false;
+        }
+        updateUI();
+      });
+    });
+
+    // Navegação
+    prevBtn.addEventListener('click', () => {
+      if (currentIndex > 0) { currentIndex--; updateUI(); }
+    });
+    nextBtn.addEventListener('click', () => {
+      if (currentIndex < viewers.length - 1) { currentIndex++; updateUI(); }
+    });
+
+    // Clique no botão "Ver em RA" - versão estável, sem mudança dinâmica no ios-src
+    document.querySelectorAll('.custom-ar-button').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const viewer = viewers[currentIndex];
+
+        if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !/CriOS/.test(navigator.userAgent) && !/FxiOS/.test(navigator.userAgent)) {
+          try {
+            await viewer.activateAR();
+          } catch (err) {
+            console.error('Erro ao ativar Quick Look:', err);
+            alert('Não foi possível abrir o modo RA no iOS.\nVerifique HTTPS, arquivos .usdz e Safari atualizado.');
+          }
+        } else {
+          if (await viewer.canActivateAR()) {
+            await viewer.activateAR();
+          } else {
+            alert('RA não disponível. Verifique Chrome e suporte ARCore.');
+          }
+        }
+      });
+    });
+
+    // Inicialização
+    updateUI();
+  </script>
+</body>
+</html>
