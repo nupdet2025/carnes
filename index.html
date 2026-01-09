@@ -42,7 +42,7 @@
     /* Botão Ver em RA reposicionado para canto SUPERIOR direito */
     .custom-ar-button {
       position: absolute;
-      top: 20px;
+      top: 20px; /* Alterado de bottom para top */
       right: 20px;
       padding: 12px 20px;
       background: white;
@@ -182,17 +182,16 @@
     const playBtns = document.querySelectorAll('.animation-overlay-btn');
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
-
     function updateUI() {
       viewers.forEach((v, i) => v.classList.toggle('active', i === currentIndex));
       prevBtn.style.display = currentIndex === 0 ? 'none' : 'flex';
       nextBtn.style.display = currentIndex === viewers.length - 1 ? 'none' : 'flex';
+      // Atualiza texto dos botões de animação
       playBtns.forEach(btn => {
         btn.textContent = isAtEnd ? 'Voltar' : 'Pendurar';
         btn.classList.toggle('reverse', isAtEnd);
       });
     }
-
     // Sincronização contínua de câmera
     viewers.forEach((v, i) => {
       v.addEventListener('camera-change', () => {
@@ -203,7 +202,6 @@
         });
       });
     });
-
     // Animação (Pendurar / Voltar)
     playBtns.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -224,7 +222,6 @@
         updateUI();
       });
     });
-
     // Navegação
     prevBtn.addEventListener('click', () => {
       if (currentIndex > 0) { currentIndex--; updateUI(); }
@@ -232,30 +229,6 @@
     nextBtn.addEventListener('click', () => {
       if (currentIndex < viewers.length - 1) { currentIndex++; updateUI(); }
     });
-
-    // Clique no botão "Ver em RA" - versão estável sem mudança dinâmica
-    document.querySelectorAll('.custom-ar-button').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        const viewer = viewers[currentIndex];
-
-        if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !/CriOS/.test(navigator.userAgent) && !/FxiOS/.test(navigator.userAgent)) {
-          try {
-            await viewer.activateAR();
-          } catch (err) {
-            console.error('Erro ao ativar Quick Look:', err);
-            alert('Não foi possível abrir o modo RA no iOS.\n\nVerifique:\n- HTTPS\n- Arquivos .usdz no caminho correto\n- Safari atualizado');
-          }
-        } else {
-          if (await viewer.canActivateAR()) {
-            await viewer.activateAR();
-          } else {
-            alert('RA não disponível. Verifique Chrome e suporte ARCore.');
-          }
-        }
-      });
-    });
-
     // Inicialização
     updateUI();
   </script>
