@@ -2,9 +2,8 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Galeria 3D com RA</title>
-  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visualizador 3D com RA</title>
   <style>
     body {
       margin: 0;
@@ -26,47 +25,64 @@
       width: 100%;
       height: 100%;
       position: absolute;
-      top: 0; left: 0;
-      opacity: 0;
-      pointer-events: none;
+      top: 0;
+      left: 0;
       transition: opacity 0.3s ease;
     }
     model-viewer.active {
       opacity: 1;
       pointer-events: auto;
+      z-index: 10;
     }
-
-    /* Esconde o botão AR padrão */
+    model-viewer.hidden {
+      opacity: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
     model-viewer::part(default-ar-button) {
-      display: none !important;
+      display: none;
     }
-
-    /* Botão Ver em RA reposicionado para canto SUPERIOR direito */
-    .custom-ar-button {
+    .ar-controls {
       position: absolute;
-      top: 20px;         /* Alterado de bottom para top */
-      right: 20px;
-      padding: 12px 20px;
-      background: white;
-      color: #333;
-      border: none;
-      border-radius: 8px;
-      font-weight: bold;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
       z-index: 1000;
     }
-
-    /* Garante que o botão AR só apareça no viewer ativo */
-    model-viewer:not(.active) .custom-ar-button {
-      display: none !important;
+    model-viewer .ar-controls * {
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
-
-    /* Navegação lateral */
-    .nav-side-btn {
+    .action-btn {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 24px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      pointer-events: auto;
+      transition: all 0.2s ease;
+    }
+    .action-btn:active {
+      background-color: #0056b3;
+      transform: translateX(-50%) scale(0.95);
+    }
+    .action-btn.reverse {
+      background-color: #f4a261;
+    }
+    .action-btn.reverse:active {
+      background-color: #e76f51;
+    }
+    .nav-btn {
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
@@ -79,108 +95,122 @@
       font-size: 20px;
       font-weight: bold;
       cursor: pointer;
-      z-index: 1000;
       display: flex;
       justify-content: center;
       align-items: center;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      transition: all 0.2s ease;
-    }
-    .nav-side-btn:active { transform: translateY(-50%) scale(0.9); background-color: #0056b3; }
-    #prev-btn { left: 20px; }
-    #next-btn { right: 20px; }
-
-    /* Botão de animação (Pendurar / Voltar) */
-    .animation-overlay-btn {
-      position: absolute;
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 14px 28px;
-      font-size: 17px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 12px;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.3);
-      z-index: 1000;
       pointer-events: auto;
       transition: all 0.2s ease;
     }
-    .animation-overlay-btn:active { transform: translateX(-50%) scale(0.95); background-color: #0056b3; }
-    .animation-overlay-btn.reverse { background-color: #f4a261; }
-    .animation-overlay-btn.reverse:active { background-color: #e76f51; }
+    .nav-btn:active {
+      transform: translateY(-50%) scale(0.9);
+      background-color: #0056b3;
+    }
+    .prev-btn { left: 20px; }
+    .next-btn { right: 20px; }
+    .ar-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 10px 16px;
+      background-color: white;
+      color: #333;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .ar-btn:hover {
+      background-color: #f8f9fa;
+    }
   </style>
 </head>
 <body>
+
   <div class="viewer-container">
-    <!-- Navegação lateral -->
-    <button id="prev-btn" class="nav-side-btn" style="display: none;">←</button>
-    <button id="next-btn" class="nav-side-btn">→</button>
 
-    <!-- Model Viewers -->
-    <model-viewer id="mv-0" src="modelos/01.glb" ar ar-modes="webxr scene-viewer quick-look"
+    <!-- Botão AR global -->
+    <button id="ar-btn" class="ar-btn">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
+        <path d="M17 3H15V5H17C18.1046 5 19 5.89543 19 7V9H21V7C21 4.79086 19.2091 3 17 3Z" fill="currentColor"/>
+        <path d="M21 17V15H19V17C19 18.1046 18.1046 19 17 19H15V21H17C19.2091 21 21 19.2091 21 17Z" fill="currentColor"/>
+        <path d="M7 21H9V19H7C5.89543 19 5 18.1046 5 17V15H3V17C3 19.2091 4.79086 21 7 21Z" fill="currentColor"/>
+      </svg>
+      Ver em RA
+    </button>
+
+    <!-- Viewer 0 -->
+    <model-viewer id="mv-0" class="active"
+      src="modelos/01.glb"
+      ios-src="modelos/01.usdz"
+      ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
-      animation-loop="false" touch-action="pan-y" class="active">
-      <button slot="ar-button" class="custom-ar-button">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
-          <path d="M17 3H15V5H17C18.1046 5 19 5.89543 19 7V9H21V7C21 4.79086 19.2091 3 17 3Z" fill="currentColor"/>
-          <path d="M21 17V15H19V17C19 18.1046 18.1046 19 17 19H15V21H17C19.2091 21 21 19.2091 21 17Z" fill="currentColor"/>
-          <path d="M7 21H9V19H7C5.89543 19 5 18.1046 5 17V15H3V17C3 19.2091 4.79086 21 7 21Z" fill="currentColor"/>
-        </svg>
-        Ver em RA
-      </button>
-      <button class="animation-overlay-btn">Pendurar</button>
+      animation-loop="false" xr-environment poster="posters/01.jpg">
+      <div class="ar-controls">
+        <button class="nav-btn prev-btn">←</button>
+        <button class="nav-btn next-btn">→</button>
+        <button class="action-btn">Pendurar</button>
+      </div>
     </model-viewer>
 
-    <model-viewer id="mv-1" src="modelos/02.glb" ar ar-modes="webxr scene-viewer quick-look"
+    <!-- Viewer 1 -->
+    <model-viewer id="mv-1" class="hidden"
+      src="modelos/02.glb"
+      ios-src="modelos/02.usdz"
+      ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
-      animation-loop="false" touch-action="pan-y">
-      <button slot="ar-button" class="custom-ar-button">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
-          <path d="M17 3H15V5H17C18.1046 5 19 5.89543 19 7V9H21V7C21 4.79086 19.2091 3 17 3Z" fill="currentColor"/>
-          <path d="M21 17V15H19V17C19 18.1046 18.1046 19 17 19H15V21H17C19.2091 21 21 19.2091 21 17Z" fill="currentColor"/>
-          <path d="M7 21H9V19H7C5.89543 19 5 18.1046 5 17V15H3V17C3 19.2091 4.79086 21 7 21Z" fill="currentColor"/>
-        </svg>
-        Ver em RA
-      </button>
-      <button class="animation-overlay-btn">Pendurar</button>
+      animation-loop="false" xr-environment poster="posters/02.jpg">
+      <div class="ar-controls">
+        <button class="nav-btn prev-btn">←</button>
+        <button class="nav-btn next-btn">→</button>
+        <button class="action-btn">Pendurar</button>
+      </div>
     </model-viewer>
 
-    <model-viewer id="mv-2" src="modelos/03.glb" ar ar-modes="webxr scene-viewer quick-look"
+    <!-- Viewer 2 -->
+    <model-viewer id="mv-2" class="hidden"
+      src="modelos/03.glb"
+      ios-src="modelos/03.usdz"
+      ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
-      animation-loop="false" touch-action="pan-y">
-      <button slot="ar-button" class="custom-ar-button">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
-          <path d="M17 3H15V5H17C18.1046 5 19 5.89543 19 7V9H21V7C21 4.79086 19.2091 3 17 3Z" fill="currentColor"/>
-          <path d="M21 17V15H19V17C19 18.1046 18.1046 19 17 19H15V21H17C19.2091 21 21 19.2091 21 17Z" fill="currentColor"/>
-          <path d="M7 21H9V19H7C5.89543 19 5 18.1046 5 17V15H3V17C3 19.2091 4.79086 21 7 21Z" fill="currentColor"/>
-        </svg>
-        Ver em RA
-      </button>
-      <button class="animation-overlay-btn">Pendurar</button>
+      animation-loop="false" xr-environment poster="posters/03.jpg">
+      <div class="ar-controls">
+        <button class="nav-btn prev-btn">←</button>
+        <button class="nav-btn next-btn">→</button>
+        <button class="action-btn">Pendurar</button>
+      </div>
     </model-viewer>
 
-    <model-viewer id="mv-3" src="modelos/04.glb" ar ar-modes="webxr scene-viewer quick-look"
+    <!-- Viewer 3 -->
+    <model-viewer id="mv-3" class="hidden"
+      src="modelos/04.glb"
+      ios-src="modelos/04.usdz"
+      ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
-      animation-loop="false" touch-action="pan-y">
-      <button slot="ar-button" class="custom-ar-button">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
-          <path d="M17 3H15V5H17C18.1046 5 19 5.89543 19 7V9H21V7C21 4.79086 19.2091 3 17 3Z" fill="currentColor"/>
-          <path d="M21 17V15H19V17C19 18.1046 18.1046 19 17 19H15V21H17C19.2091 21 21 19.2091 21 17Z" fill="currentColor"/>
-          <path d="M7 21H9V19H7C5.89543 19 5 18.1046 5 17V15H3V17C3 19.2091 4.79086 21 7 21Z" fill="currentColor"/>
-        </svg>
-        Ver em RA
-      </button>
-      <button class="animation-overlay-btn">Pendurar</button>
+      animation-loop="false" xr-environment poster="posters/04.jpg">
+      <div class="ar-controls">
+        <button class="nav-btn prev-btn">←</button>
+        <button class="nav-btn next-btn">→</button>
+        <button class="action-btn">Pendurar</button>
+      </div>
     </model-viewer>
+
   </div>
 
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <script>
+    // --- DETECÇÃO DE iOS ---
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && 
+                  !/CriOS/.test(navigator.userAgent) && 
+                  !/FxiOS/.test(navigator.userAgent);
+
+    // --- MULTI-VIEWER ARCHITECTURE ---
     const viewers = [
       document.getElementById('mv-0'),
       document.getElementById('mv-1'),
@@ -188,66 +218,107 @@
       document.getElementById('mv-3')
     ];
     let currentIndex = 0;
-    let isAtEnd = false;
+    let isHung = false;
 
-    const playBtns = document.querySelectorAll('.animation-overlay-btn');
-    const prevBtn = document.getElementById('prev-btn');
-    const nextBtn = document.getElementById('next-btn');
+    // --- DOM ELEMENTS ---
+    const allPlayBtns = document.querySelectorAll('.action-btn');
+    const allPrevBtns = document.querySelectorAll('.prev-btn');
+    const allNextBtns = document.querySelectorAll('.next-btn');
+    const arBtn = document.getElementById('ar-btn');
 
+    // --- UPDATE UI ---
     function updateUI() {
-      viewers.forEach((v, i) => v.classList.toggle('active', i === currentIndex));
+      viewers.forEach((v, i) => {
+        if (i === currentIndex) {
+          v.classList.add('active');
+          v.classList.remove('hidden');
+        } else {
+          v.classList.add('hidden');
+          v.classList.remove('active');
+        }
+      });
 
-      prevBtn.style.display = currentIndex === 0 ? 'none' : 'flex';
-      nextBtn.style.display = currentIndex === viewers.length - 1 ? 'none' : 'flex';
+      allPlayBtns.forEach(btn => {
+        if (isHung) {
+          btn.textContent = 'Voltar';
+          btn.classList.add('reverse');
+        } else {
+          btn.textContent = 'Pendurar';
+          btn.classList.remove('reverse');
+        }
+      });
 
-      // Atualiza texto dos botões de animação
-      playBtns.forEach(btn => {
-        btn.textContent = isAtEnd ? 'Voltar' : 'Pendurar';
-        btn.classList.toggle('reverse', isAtEnd);
+      allPrevBtns.forEach(btn => {
+        btn.style.display = currentIndex === 0 ? 'none' : 'flex';
+      });
+      allNextBtns.forEach(btn => {
+        btn.style.display = currentIndex === viewers.length - 1 ? 'none' : 'flex';
       });
     }
 
-    // Sincronização contínua de câmera
-    viewers.forEach((v, i) => {
-      v.addEventListener('camera-change', () => {
-        if (i !== currentIndex) return;
-        const orbit = v.getCameraOrbit().toString();
-        viewers.forEach((other, j) => {
-          if (j !== currentIndex) other.cameraOrbit = orbit;
-        });
-      });
-    });
+    // --- PENDURAR/VOLTAR LOGIC ---
+    allPlayBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
 
-    // Animação (Pendurar / Voltar)
-    playBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (!isAtEnd) {
+        if (!isHung) {
+          isHung = true;
+          updateUI();
           viewers.forEach(v => {
             v.currentTime = 0;
-            v.timeScale = 1;
             v.play({ repetitions: 1 });
           });
-          isAtEnd = true;
         } else {
+          isHung = false;
+          updateUI();
           viewers.forEach(v => {
             v.pause();
             v.currentTime = 0;
           });
-          isAtEnd = false;
         }
-        updateUI();
       });
     });
 
-    // Navegação
-    prevBtn.addEventListener('click', () => {
-      if (currentIndex > 0) { currentIndex--; updateUI(); }
-    });
-    nextBtn.addEventListener('click', () => {
-      if (currentIndex < viewers.length - 1) { currentIndex++; updateUI(); }
+    // --- NAVIGATION LOGIC ---
+    allPrevBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (currentIndex > 0) {
+          currentIndex--;
+          updateUI();
+        }
+      });
     });
 
-    // Inicialização
+    allNextBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (currentIndex < viewers.length - 1) {
+          currentIndex++;
+          updateUI();
+        }
+      });
+    });
+
+    // --- AR LOGIC ---
+    arBtn.addEventListener('click', async () => {
+      const activeViewer = viewers[currentIndex];
+      try {
+        if (await activeViewer.canActivateAR()) {
+          await activeViewer.activateAR();
+        } else {
+          throw new Error('AR não suportado');
+        }
+      } catch (err) {
+        if (isIOS) {
+          alert('RA disponível via Quick Look.\n\nObservação: os botões de navegação e animação não estarão visíveis durante o modo RA no iOS.');
+        } else {
+          alert('RA não está disponível neste dispositivo.\nVerifique se o Chrome está atualizado e o aparelho suporta ARCore.');
+        }
+      }
+    });
+
+    // --- INIT ---
     updateUI();
   </script>
 </body>
