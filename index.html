@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Galeria 3D com RA</title>
+  <title>Cortes de Carnes Virtual</title>
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <style>
     body {
@@ -35,12 +35,14 @@
       opacity: 1;
       pointer-events: auto;
     }
+    /* Esconde o botão AR padrão */
     model-viewer::part(default-ar-button) {
       display: none !important;
     }
+    /* Botão Ver em RA reposicionado para canto SUPERIOR direito */
     .custom-ar-button {
       position: absolute;
-      top: 20px;
+      top: 20px; /* Alterado de bottom para top */
       right: 20px;
       padding: 12px 20px;
       background: white;
@@ -55,9 +57,11 @@
       cursor: pointer;
       z-index: 1000;
     }
+    /* Garante que o botão AR só apareça no viewer ativo */
     model-viewer:not(.active) .custom-ar-button {
       display: none !important;
     }
+    /* Navegação lateral */
     .nav-side-btn {
       position: absolute;
       top: 50%;
@@ -81,6 +85,7 @@
     .nav-side-btn:active { transform: translateY(-50%) scale(0.9); background-color: #0056b3; }
     #prev-btn { left: 20px; }
     #next-btn { right: 20px; }
+    /* Botão de animação (Pendurar / Voltar) */
     .animation-overlay-btn {
       position: absolute;
       bottom: 30px;
@@ -100,55 +105,13 @@
     .animation-overlay-btn:active { transform: translateX(-50%) scale(0.95); background-color: #0056b3; }
     .animation-overlay-btn.reverse { background-color: #f4a261; }
     .animation-overlay-btn.reverse:active { background-color: #e76f51; }
-
-    /* Hotspots e linhas */
-    .Hotspot { background: none; border: none; padding: 0; cursor: pointer; pointer-events: auto; }
-    .HotspotAnnotation {
-      background: #fff;
-      border-radius: 4px;
-      border: none;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.25);
-      color: rgba(0,0,0,0.8);
-      font-family: Arial, sans-serif;
-      font-size: 18px;
-      font-weight: 700;
-      padding: 0.5em 1em;
-      pointer-events: none;
-    }
-    model-viewer:not(.active) [slot^="hotspot-"] { display: none !important; }
-    #lines { pointer-events: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 999; }
-    .line { stroke: #00aaff; stroke-width: 3; stroke-linecap: round; }
-    #labels-container {
-      position: absolute;
-      bottom: 80px;
-      left: 0;
-      width: 100%;
-      display: flex;
-      justify-content: space-evenly;
-      pointer-events: none;
-      z-index: 1000;
-    }
   </style>
 </head>
 <body>
   <div class="viewer-container">
+    <!-- Navegação lateral -->
     <button id="prev-btn" class="nav-side-btn" style="display: none;">←</button>
     <button id="next-btn" class="nav-side-btn">→</button>
-
-    <!-- SVG para as linhas (global) -->
-    <svg id="lines"><line class="line"/><line class="line"/><line class="line"/><line class="line"/><line class="line"/><line class="line"/><line class="line"/></svg>
-
-    <!-- Botões fixos na parte inferior (só visíveis no modelo 03) -->
-    <div id="labels-container">
-      <button class="HotspotAnnotation">Cupim</button>
-      <button class="HotspotAnnotation">Acém</button>
-      <button class="HotspotAnnotation">Peito</button>
-      <button class="HotspotAnnotation">Picanha</button>
-      <button class="HotspotAnnotation">Ponta de Agulha</button>
-      <button class="HotspotAnnotation">Filé de Costela</button>
-      <button class="HotspotAnnotation">Fraudinha</button>
-    </div>
-
     <!-- Model Viewers -->
     <model-viewer id="mv-0" src="modelos/01.glb" ios-src="modelos/01.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
@@ -164,7 +127,6 @@
       </button>
       <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
-
     <model-viewer id="mv-1" src="modelos/02.glb" ios-src="modelos/02.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y">
@@ -179,7 +141,6 @@
       </button>
       <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
-
     <model-viewer id="mv-2" src="modelos/03.glb" ios-src="modelos/03.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y">
@@ -193,17 +154,7 @@
         Ver em RA
       </button>
       <button class="animation-overlay-btn">Pendurar</button>
-
-      <!-- Hotspots invisíveis (só para ancoragem) -->
-      <div class="Hotspot" slot="hotspot-1" data-surface="0 0 3496 2819 3175 0.627 0.192 0.181"></div>
-      <div class="Hotspot" slot="hotspot-2" data-surface="0 0 3134 3130 4109 0.022 0.088 0.890"></div>
-      <div class="Hotspot" slot="hotspot-3" data-surface="0 0 2349 2837 2836 0.647 0.128 0.225"></div>
-      <div class="Hotspot" slot="hotspot-5" data-surface="0 0 3719 2669 4205 0.718 0.275 0.007"></div>
-      <div class="Hotspot" slot="hotspot-6" data-surface="0 0 2353 4060 2864 0.284 0.296 0.420"></div>
-      <div class="Hotspot" slot="hotspot-7" data-surface="0 0 3613 3327 3615 0.036 0.191 0.773"></div>
-      <div class="Hotspot" slot="hotspot-8" data-surface="0 0 3589 3591 3590 0.035 0.628 0.337"></div>
     </model-viewer>
-
     <model-viewer id="mv-3" src="modelos/04.glb" ios-src="modelos/04.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y">
@@ -219,7 +170,6 @@
       <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
   </div>
-
   <script>
     const viewers = [
       document.getElementById('mv-0'),
@@ -232,24 +182,16 @@
     const playBtns = document.querySelectorAll('.animation-overlay-btn');
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
-    const lines = document.querySelectorAll('#lines .line');
-    const labelButtons = document.querySelectorAll('#labels-container .HotspotAnnotation');
-    let baseRect = new DOMRect();
-
     function updateUI() {
       viewers.forEach((v, i) => v.classList.toggle('active', i === currentIndex));
       prevBtn.style.display = currentIndex === 0 ? 'none' : 'flex';
       nextBtn.style.display = currentIndex === viewers.length - 1 ? 'none' : 'flex';
+      // Atualiza texto dos botões de animação
       playBtns.forEach(btn => {
         btn.textContent = isAtEnd ? 'Voltar' : 'Pendurar';
         btn.classList.toggle('reverse', isAtEnd);
       });
-      // Mostra/esconde caixas e linhas
-      const show = currentIndex === 2;
-      document.getElementById('labels-container').style.display = show ? 'flex' : 'none';
-      document.getElementById('lines').style.display = show ? 'block' : 'none';
     }
-
     // Sincronização contínua de câmera
     viewers.forEach((v, i) => {
       v.addEventListener('camera-change', () => {
@@ -260,7 +202,6 @@
         });
       });
     });
-
     // Animação (Pendurar / Voltar)
     playBtns.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -275,14 +216,12 @@
           viewers.forEach(v => {
             v.pause();
             v.currentTime = 0;
-            setTimeout(() => v.jumpToGoal(), 50);
           });
           isAtEnd = false;
         }
         updateUI();
       });
     });
-
     // Navegação
     prevBtn.addEventListener('click', () => {
       if (currentIndex > 0) { currentIndex--; updateUI(); }
@@ -290,65 +229,6 @@
     nextBtn.addEventListener('click', () => {
       if (currentIndex < viewers.length - 1) { currentIndex++; updateUI(); }
     });
-
-    // Botão "Ver em RA"
-    document.querySelectorAll('.custom-ar-button').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        const viewer = viewers[currentIndex];
-        if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !/CriOS/.test(navigator.userAgent) && !/FxiOS/.test(navigator.userAgent)) {
-          try {
-            await viewer.activateAR();
-          } catch (err) {
-            console.error('Erro ao ativar Quick Look:', err);
-            alert('Não foi possível abrir o modo RA no iOS.\nVerifique HTTPS, arquivos .usdz e Safari atualizado.');
-          }
-        } else {
-          if (await viewer.canActivateAR()) {
-            await viewer.activateAR();
-          } else {
-            alert('RA não disponível. Verifique Chrome e suporte ARCore.');
-          }
-        }
-      });
-    });
-
-    // Desenho das linhas (exatamente como o exemplo oficial)
-    function onResize() {
-      const viewer = viewers[currentIndex];
-      const arStatus = viewer.getAttribute('ar-status');
-      baseRect = (arStatus === "not-presenting" || arStatus === "failed") ? viewer.getBoundingClientRect() : new DOMRect();
-    }
-    window.addEventListener('resize', onResize);
-
-    viewers[2].addEventListener('load', () => {
-      onResize();
-      function drawLines() {
-        if (currentIndex !== 2) return;
-        const hotspotNames = ['1','2','3','5','6','7','8'];
-        hotspotNames.forEach((name, i) => {
-          const hotspot = viewers[2].queryHotspot('hotspot-' + name);
-          if (hotspot && hotspot.canvasPosition) {
-            const pos = hotspot.canvasPosition;
-            const labelRect = labelButtons[i].getBoundingClientRect();
-            lines[i].setAttribute('x1', pos.x);
-            lines[i].setAttribute('y1', pos.y);
-            lines[i].setAttribute('x2', (labelRect.left + labelRect.right) / 2 - baseRect.left);
-            lines[i].setAttribute('y2', labelRect.top - baseRect.top);
-          }
-        });
-        requestAnimationFrame(drawLines);
-      }
-      drawLines();
-    });
-
-    // Atualiza quando troca de modelo ou volta da animação
-    const originalUpdateUI = updateUI;
-    updateUI = function() {
-      originalUpdateUI();
-      onResize();
-    };
-
     // Inicialização
     updateUI();
   </script>
