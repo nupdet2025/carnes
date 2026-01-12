@@ -35,11 +35,9 @@
       opacity: 1;
       pointer-events: auto;
     }
-    /* Esconde o botão AR padrão */
     model-viewer::part(default-ar-button) {
       display: none !important;
     }
-    /* Botão Ver em RA */
     .custom-ar-button {
       position: absolute;
       top: 20px;
@@ -60,7 +58,6 @@
     model-viewer:not(.active) .custom-ar-button {
       display: none !important;
     }
-    /* Navegação lateral */
     .nav-side-btn {
       position: absolute;
       top: 50%;
@@ -83,7 +80,6 @@
     .nav-side-btn:active { transform: translateY(-50%) scale(0.9); background-color: #0056b3; }
     #prev-btn { left: 20px; }
     #next-btn { right: 20px; }
-    /* Botão Pendurar / Voltar */
     .animation-overlay-btn {
       position: absolute;
       bottom: 30px;
@@ -103,7 +99,7 @@
     .animation-overlay-btn.reverse { background-color: #f4a261; }
     .animation-overlay-btn.reverse:active { background-color: #e76f51; }
 
-    /* Estilos para hotspots */
+    /* Hotspots */
     .Hotspot {
       background: none;
       border: none;
@@ -120,6 +116,8 @@
       white-space: nowrap;
       box-shadow: 0 4px 12px rgba(0,0,0,0.5);
       pointer-events: none;
+      position: absolute;
+      transform: translate(-50%, -150%);
     }
     model-viewer:not(.active) [slot^="hotspot-"] {
       display: none !important;
@@ -144,14 +142,13 @@
 </head>
 <body>
   <div class="viewer-container">
-    <!-- Navegação lateral -->
     <button id="prev-btn" class="nav-side-btn" style="display: none;">←</button>
     <button id="next-btn" class="nav-side-btn">→</button>
 
-    <!-- Linhas líderes globais (atualizadas via JS) -->
+    <!-- SVG global para linhas (atualizado pontualmente) -->
     <svg class="leader-line" id="leader-lines"></svg>
 
-    <!-- Model Viewers -->
+    <!-- mv-0 -->
     <model-viewer id="mv-0" src="modelos/01.glb" ios-src="modelos/01.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y" class="active">
@@ -167,6 +164,7 @@
       <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
 
+    <!-- mv-1 -->
     <model-viewer id="mv-1" src="modelos/02.glb" ios-src="modelos/02.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y">
@@ -182,6 +180,7 @@
       <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
 
+    <!-- mv-2 com hotspots -->
     <model-viewer id="mv-2" src="modelos/03.glb" ios-src="modelos/03.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y">
@@ -196,7 +195,7 @@
       </button>
       <button class="animation-overlay-btn">Pendurar</button>
 
-      <!-- Hotspots do modelo 03 -->
+      <!-- Hotspots -->
       <button class="Hotspot" slot="hotspot-1" data-surface="0 0 3496 2819 3175 0.627 0.192 0.181" data-visibility-attribute="visible">
         <div class="HotspotAnnotation">Cupim</div>
       </button>
@@ -270,7 +269,7 @@
       });
     });
 
-    // Animação (Pendurar / Voltar) - com delay para hotspots voltarem
+    // Animação Pendurar / Voltar - com recálculo forçado
     playBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         if (!isAtEnd) {
@@ -284,29 +283,34 @@
           viewers.forEach(v => {
             v.pause();
             v.currentTime = 0;
-            setTimeout(() => {
-              v.jumpToGoal(); // Recálculo com delay para hotspots voltarem
-            }, 100);
+            setTimeout(() => v.jumpToGoal(), 50); // Delay pequeno para hotspots voltarem
           });
           isAtEnd = false;
         }
         updateUI();
+        updateHotspotLines(); // Atualiza linhas após mudança de estado
       });
     });
 
     // Navegação
     prevBtn.addEventListener('click', () => {
-      if (currentIndex > 0) { currentIndex--; updateUI(); }
+      if (currentIndex > 0) { currentIndex--; updateUI(); updateHotspotLines(); }
     });
     nextBtn.addEventListener('click', () => {
-      if (currentIndex < viewers.length - 1) { currentIndex++; updateUI(); }
+      if (currentIndex < viewers.length - 1) { currentIndex++; updateUI(); updateHotspotLines(); }
     });
 
-    // Botão "Ver em RA" - versão estável
+    // Botão "Ver em RA" - versão mais estável possível
     document.querySelectorAll('.custom-ar-button').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         e.stopPropagation();
         const viewer = viewers[currentIndex];
+
+        // Para o loop de linhas antes de entrar em AR (evita conflito)
+        if (rafId) {
+          cancelAnimationFrame(rafId);
+          rafId = null;
+        }
 
         if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !/CriOS/.test(navigator.userAgent) && !/FxiOS/.test(navigator.userAgent)) {
           try {
@@ -322,10 +326,14 @@
             alert('RA não disponível. Verifique Chrome e suporte ARCore.');
           }
         }
+
+        // Reinicia o loop após sair do AR (se voltar para o viewer)
+        if (currentIndex === 2) animateLines();
       });
     });
 
-    // Atualização das linhas azuis (só quando modelo 03 ativo)
+    // Atualização das linhas azuis (otimizada)
+    let rafId = null;
     function updateHotspotLines() {
       const activeViewer = viewers[currentIndex];
       if (activeViewer.id !== 'mv-2') {
@@ -344,8 +352,8 @@
         const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
         line.setAttribute("x1", pos.x);
         line.setAttribute("y1", pos.y);
-        line.setAttribute("x2", pos.x + 150); // Ajuste horizontal
-        line.setAttribute("y2", pos.y - 120); // Ajuste vertical para caixa acima
+        line.setAttribute("x2", pos.x + 150);
+        line.setAttribute("y2", pos.y - 120);
         svg.appendChild(line);
 
         const annotation = hotspot.querySelector('.HotspotAnnotation');
@@ -356,20 +364,14 @@
       });
     }
 
-    // Loop otimizado: só atualiza quando necessário
-    let rafId = null;
     function animateLines() {
       updateHotspotLines();
       rafId = requestAnimationFrame(animateLines);
     }
 
-    // Inicia/parar o loop baseado no viewer ativo
-    viewers.forEach(v => {
-      v.addEventListener('load', () => {
-        if (v.id === 'mv-2' && currentIndex === 2) {
-          if (!rafId) animateLines();
-        }
-      });
+    // Inicia loop apenas quando modelo 03 carrega
+    viewers[2].addEventListener('load', () => {
+      if (currentIndex === 2 && !rafId) animateLines();
     });
 
     // Para o loop quando trocar de modelo
