@@ -76,6 +76,7 @@
       justify-content: center;
       align-items: center;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transition: all 0.2s ease;
     }
     .nav-side-btn:active { transform: translateY(-50%) scale(0.9); background-color: #0056b3; }
     #prev-btn { left: 20px; }
@@ -94,49 +95,38 @@
       box-shadow: 0 6px 16px rgba(0,0,0,0.3);
       z-index: 1000;
       pointer-events: auto;
+      transition: all 0.2s ease;
     }
     .animation-overlay-btn:active { transform: translateX(-50%) scale(0.95); background-color: #0056b3; }
     .animation-overlay-btn.reverse { background-color: #f4a261; }
     .animation-overlay-btn.reverse:active { background-color: #e76f51; }
 
-    /* Hotspots */
-    .Hotspot {
-      background: none;
-      border: none;
-      padding: 0;
-      cursor: pointer;
-      pointer-events: auto;
-    }
+    /* Hotspots e linhas */
+    .Hotspot { background: none; border: none; padding: 0; cursor: pointer; pointer-events: auto; }
     .HotspotAnnotation {
-      background: rgba(0,0,0,0.85);
-      color: white;
-      padding: 8px 14px;
-      border-radius: 8px;
-      font-size: 14px;
-      white-space: nowrap;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      background: #fff;
+      border-radius: 4px;
+      border: none;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+      color: rgba(0,0,0,0.8);
+      font-family: Arial, sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      padding: 0.5em 1em;
       pointer-events: none;
-      position: absolute;
-      transform: translate(-50%, -150%);
     }
-    model-viewer:not(.active) [slot^="hotspot-"] {
-      display: none !important;
-    }
-
-    /* Linha azul líder */
-    .leader-line {
+    model-viewer:not(.active) [slot^="hotspot-"] { display: none !important; }
+    #lines { pointer-events: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 999; }
+    .line { stroke: #00aaff; stroke-width: 3; stroke-linecap: round; }
+    #labels-container {
       position: absolute;
-      top: 0;
+      bottom: 80px;
       left: 0;
       width: 100%;
-      height: 100%;
+      display: flex;
+      justify-content: space-evenly;
       pointer-events: none;
-      z-index: 999;
-    }
-    .leader-line line {
-      stroke: #00aaff;
-      stroke-width: 3;
-      stroke-linecap: round;
+      z-index: 1000;
     }
   </style>
 </head>
@@ -145,10 +135,21 @@
     <button id="prev-btn" class="nav-side-btn" style="display: none;">←</button>
     <button id="next-btn" class="nav-side-btn">→</button>
 
-    <!-- SVG global para linhas (atualizado pontualmente) -->
-    <svg class="leader-line" id="leader-lines"></svg>
+    <!-- SVG para as linhas (global) -->
+    <svg id="lines"><line class="line"/><line class="line"/><line class="line"/><line class="line"/><line class="line"/><line class="line"/><line class="line"/></svg>
 
-    <!-- mv-0 -->
+    <!-- Botões fixos na parte inferior (só visíveis no modelo 03) -->
+    <div id="labels-container">
+      <button class="HotspotAnnotation">Cupim</button>
+      <button class="HotspotAnnotation">Acém</button>
+      <button class="HotspotAnnotation">Peito</button>
+      <button class="HotspotAnnotation">Picanha</button>
+      <button class="HotspotAnnotation">Ponta de Agulha</button>
+      <button class="HotspotAnnotation">Filé de Costela</button>
+      <button class="HotspotAnnotation">Fraudinha</button>
+    </div>
+
+    <!-- Model Viewers -->
     <model-viewer id="mv-0" src="modelos/01.glb" ios-src="modelos/01.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y" class="active">
@@ -164,7 +165,6 @@
       <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
 
-    <!-- mv-1 -->
     <model-viewer id="mv-1" src="modelos/02.glb" ios-src="modelos/02.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y">
@@ -180,7 +180,6 @@
       <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
 
-    <!-- mv-2 com hotspots -->
     <model-viewer id="mv-2" src="modelos/03.glb" ios-src="modelos/03.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y">
@@ -195,28 +194,14 @@
       </button>
       <button class="animation-overlay-btn">Pendurar</button>
 
-      <!-- Hotspots -->
-      <button class="Hotspot" slot="hotspot-1" data-surface="0 0 3496 2819 3175 0.627 0.192 0.181" data-visibility-attribute="visible">
-        <div class="HotspotAnnotation">Cupim</div>
-      </button>
-      <button class="Hotspot" slot="hotspot-2" data-surface="0 0 3134 3130 4109 0.022 0.088 0.890" data-visibility-attribute="visible">
-        <div class="HotspotAnnotation">Acém</div>
-      </button>
-      <button class="Hotspot" slot="hotspot-3" data-surface="0 0 2349 2837 2836 0.647 0.128 0.225" data-visibility-attribute="visible">
-        <div class="HotspotAnnotation">Peito</div>
-      </button>
-      <button class="Hotspot" slot="hotspot-5" data-surface="0 0 3719 2669 4205 0.718 0.275 0.007" data-visibility-attribute="visible">
-        <div class="HotspotAnnotation">Picanha</div>
-      </button>
-      <button class="Hotspot" slot="hotspot-6" data-surface="0 0 2353 4060 2864 0.284 0.296 0.420" data-visibility-attribute="visible">
-        <div class="HotspotAnnotation">Ponta de Agulha</div>
-      </button>
-      <button class="Hotspot" slot="hotspot-7" data-surface="0 0 3613 3327 3615 0.036 0.191 0.773" data-visibility-attribute="visible">
-        <div class="HotspotAnnotation">Filé de Costela</div>
-      </button>
-      <button class="Hotspot" slot="hotspot-8" data-surface="0 0 3589 3591 3590 0.035 0.628 0.337" data-visibility-attribute="visible">
-        <div class="HotspotAnnotation">Fraudinha</div>
-      </button>
+      <!-- Hotspots invisíveis (só para ancoragem) -->
+      <div class="Hotspot" slot="hotspot-1" data-surface="0 0 3496 2819 3175 0.627 0.192 0.181"></div>
+      <div class="Hotspot" slot="hotspot-2" data-surface="0 0 3134 3130 4109 0.022 0.088 0.890"></div>
+      <div class="Hotspot" slot="hotspot-3" data-surface="0 0 2349 2837 2836 0.647 0.128 0.225"></div>
+      <div class="Hotspot" slot="hotspot-5" data-surface="0 0 3719 2669 4205 0.718 0.275 0.007"></div>
+      <div class="Hotspot" slot="hotspot-6" data-surface="0 0 2353 4060 2864 0.284 0.296 0.420"></div>
+      <div class="Hotspot" slot="hotspot-7" data-surface="0 0 3613 3327 3615 0.036 0.191 0.773"></div>
+      <div class="Hotspot" slot="hotspot-8" data-surface="0 0 3589 3591 3590 0.035 0.628 0.337"></div>
     </model-viewer>
 
     <model-viewer id="mv-3" src="modelos/04.glb" ios-src="modelos/04.usdz" ar ar-modes="webxr scene-viewer quick-look"
@@ -247,6 +232,9 @@
     const playBtns = document.querySelectorAll('.animation-overlay-btn');
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
+    const lines = document.querySelectorAll('#lines .line');
+    const labelButtons = document.querySelectorAll('#labels-container .HotspotAnnotation');
+    let baseRect = new DOMRect();
 
     function updateUI() {
       viewers.forEach((v, i) => v.classList.toggle('active', i === currentIndex));
@@ -256,6 +244,10 @@
         btn.textContent = isAtEnd ? 'Voltar' : 'Pendurar';
         btn.classList.toggle('reverse', isAtEnd);
       });
+      // Mostra/esconde caixas e linhas
+      const show = currentIndex === 2;
+      document.getElementById('labels-container').style.display = show ? 'flex' : 'none';
+      document.getElementById('lines').style.display = show ? 'block' : 'none';
     }
 
     // Sincronização contínua de câmera
@@ -269,7 +261,7 @@
       });
     });
 
-    // Animação Pendurar / Voltar - com recálculo forçado
+    // Animação (Pendurar / Voltar)
     playBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         if (!isAtEnd) {
@@ -283,35 +275,27 @@
           viewers.forEach(v => {
             v.pause();
             v.currentTime = 0;
-            setTimeout(() => v.jumpToGoal(), 50); // Delay pequeno para hotspots voltarem
+            setTimeout(() => v.jumpToGoal(), 50);
           });
           isAtEnd = false;
         }
         updateUI();
-        updateHotspotLines(); // Atualiza linhas após mudança de estado
       });
     });
 
     // Navegação
     prevBtn.addEventListener('click', () => {
-      if (currentIndex > 0) { currentIndex--; updateUI(); updateHotspotLines(); }
+      if (currentIndex > 0) { currentIndex--; updateUI(); }
     });
     nextBtn.addEventListener('click', () => {
-      if (currentIndex < viewers.length - 1) { currentIndex++; updateUI(); updateHotspotLines(); }
+      if (currentIndex < viewers.length - 1) { currentIndex++; updateUI(); }
     });
 
-    // Botão "Ver em RA" - versão mais estável possível
+    // Botão "Ver em RA"
     document.querySelectorAll('.custom-ar-button').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         e.stopPropagation();
         const viewer = viewers[currentIndex];
-
-        // Para o loop de linhas antes de entrar em AR (evita conflito)
-        if (rafId) {
-          cancelAnimationFrame(rafId);
-          rafId = null;
-        }
-
         if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !/CriOS/.test(navigator.userAgent) && !/FxiOS/.test(navigator.userAgent)) {
           try {
             await viewer.activateAR();
@@ -326,65 +310,43 @@
             alert('RA não disponível. Verifique Chrome e suporte ARCore.');
           }
         }
-
-        // Reinicia o loop após sair do AR (se voltar para o viewer)
-        if (currentIndex === 2) animateLines();
       });
     });
 
-    // Atualização das linhas azuis (otimizada)
-    let rafId = null;
-    function updateHotspotLines() {
-      const activeViewer = viewers[currentIndex];
-      if (activeViewer.id !== 'mv-2') {
-        document.getElementById('leader-lines').innerHTML = '';
-        return;
-      }
-
-      const svg = document.getElementById('leader-lines');
-      svg.innerHTML = '';
-
-      const hotspots = activeViewer.querySelectorAll('[slot^="hotspot-"]');
-      hotspots.forEach(hotspot => {
-        if (!hotspot.canvasPosition) return;
-
-        const pos = hotspot.canvasPosition;
-        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        line.setAttribute("x1", pos.x);
-        line.setAttribute("y1", pos.y);
-        line.setAttribute("x2", pos.x + 150);
-        line.setAttribute("y2", pos.y - 120);
-        svg.appendChild(line);
-
-        const annotation = hotspot.querySelector('.HotspotAnnotation');
-        if (annotation) {
-          annotation.style.left = `${pos.x + 150}px`;
-          annotation.style.top = `${pos.y - 120}px`;
-        }
-      });
+    // Desenho das linhas (exatamente como o exemplo oficial)
+    function onResize() {
+      const viewer = viewers[currentIndex];
+      const arStatus = viewer.getAttribute('ar-status');
+      baseRect = (arStatus === "not-presenting" || arStatus === "failed") ? viewer.getBoundingClientRect() : new DOMRect();
     }
+    window.addEventListener('resize', onResize);
 
-    function animateLines() {
-      updateHotspotLines();
-      rafId = requestAnimationFrame(animateLines);
-    }
-
-    // Inicia loop apenas quando modelo 03 carrega
     viewers[2].addEventListener('load', () => {
-      if (currentIndex === 2 && !rafId) animateLines();
+      onResize();
+      function drawLines() {
+        if (currentIndex !== 2) return;
+        const hotspotNames = ['1','2','3','5','6','7','8'];
+        hotspotNames.forEach((name, i) => {
+          const hotspot = viewers[2].queryHotspot('hotspot-' + name);
+          if (hotspot && hotspot.canvasPosition) {
+            const pos = hotspot.canvasPosition;
+            const labelRect = labelButtons[i].getBoundingClientRect();
+            lines[i].setAttribute('x1', pos.x);
+            lines[i].setAttribute('y1', pos.y);
+            lines[i].setAttribute('x2', (labelRect.left + labelRect.right) / 2 - baseRect.left);
+            lines[i].setAttribute('y2', labelRect.top - baseRect.top);
+          }
+        });
+        requestAnimationFrame(drawLines);
+      }
+      drawLines();
     });
 
-    // Para o loop quando trocar de modelo
+    // Atualiza quando troca de modelo ou volta da animação
     const originalUpdateUI = updateUI;
     updateUI = function() {
-      originalUpdateUI.apply(this, arguments);
-      if (currentIndex !== 2 && rafId) {
-        cancelAnimationFrame(rafId);
-        rafId = null;
-        document.getElementById('leader-lines').innerHTML = '';
-      } else if (currentIndex === 2 && !rafId) {
-        animateLines();
-      }
+      originalUpdateUI();
+      onResize();
     };
 
     // Inicialização
