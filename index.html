@@ -39,7 +39,7 @@
     model-viewer::part(default-ar-button) {
       display: none !important;
     }
-    /* Botão Ver em RA reposicionado para canto SUPERIOR direito */
+    /* Botão Ver em RA */
     .custom-ar-button {
       position: absolute;
       top: 20px;
@@ -57,7 +57,6 @@
       cursor: pointer;
       z-index: 1000;
     }
-    /* Garante que o botão AR só apareça no viewer ativo */
     model-viewer:not(.active) .custom-ar-button {
       display: none !important;
     }
@@ -80,12 +79,11 @@
       justify-content: center;
       align-items: center;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      transition: all 0.2s ease;
     }
     .nav-side-btn:active { transform: translateY(-50%) scale(0.9); background-color: #0056b3; }
     #prev-btn { left: 20px; }
     #next-btn { right: 20px; }
-    /* Botão de animação (Pendurar / Voltar) */
+    /* Botão Pendurar / Voltar */
     .animation-overlay-btn {
       position: absolute;
       bottom: 30px;
@@ -100,13 +98,12 @@
       box-shadow: 0 6px 16px rgba(0,0,0,0.3);
       z-index: 1000;
       pointer-events: auto;
-      transition: all 0.2s ease;
     }
     .animation-overlay-btn:active { transform: translateX(-50%) scale(0.95); background-color: #0056b3; }
     .animation-overlay-btn.reverse { background-color: #f4a261; }
     .animation-overlay-btn.reverse:active { background-color: #e76f51; }
 
-    /* Estilos para os hotspots */
+    /* Estilos para hotspots */
     .Hotspot {
       background: none;
       border: none;
@@ -115,17 +112,16 @@
       pointer-events: auto;
     }
     .HotspotAnnotation {
-      background: rgba(0,0,0,0.75);
+      background: rgba(0,0,0,0.85);
       color: white;
-      padding: 6px 12px;
-      border-radius: 6px;
+      padding: 8px 14px;
+      border-radius: 8px;
       font-size: 14px;
       white-space: nowrap;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
       pointer-events: none;
     }
-
-    /* Oculta hotspots quando o viewer não está ativo */
+    /* Oculta hotspots quando viewer não ativo */
     model-viewer:not(.active) [slot^="hotspot-"] {
       display: none !important;
     }
@@ -182,7 +178,7 @@
       </button>
       <button class="animation-overlay-btn">Pendurar</button>
 
-      <!-- Hotspots do modelo 03 - só aparecem quando mv-2 estiver ativo -->
+      <!-- Hotspots do modelo 03 -->
       <button class="Hotspot" slot="hotspot-1" data-surface="0 0 3496 2819 3175 0.627 0.192 0.181" data-visibility-attribute="visible">
         <div class="HotspotAnnotation">Cupim</div>
       </button>
@@ -256,7 +252,7 @@
       });
     });
 
-    // Animação (Pendurar / Voltar)
+    // Animação (Pendurar / Voltar) - com correção para hotspots voltarem
     playBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         if (!isAtEnd) {
@@ -270,6 +266,7 @@
           viewers.forEach(v => {
             v.pause();
             v.currentTime = 0;
+            v.jumpToGoal(); // Força recálculo de posições e hotspots ao voltar
           });
           isAtEnd = false;
         }
@@ -285,7 +282,7 @@
       if (currentIndex < viewers.length - 1) { currentIndex++; updateUI(); }
     });
 
-    // Clique no botão "Ver em RA"
+    // Botão "Ver em RA" - versão estável
     document.querySelectorAll('.custom-ar-button').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         e.stopPropagation();
