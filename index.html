@@ -121,9 +121,24 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.5);
       pointer-events: none;
     }
-    /* Oculta hotspots quando viewer não ativo */
     model-viewer:not(.active) [slot^="hotspot-"] {
       display: none !important;
+    }
+
+    /* Linha azul líder */
+    .leader-line {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 999;
+    }
+    .leader-line line {
+      stroke: #00aaff;
+      stroke-width: 3;
+      stroke-linecap: round;
     }
   </style>
 </head>
@@ -132,6 +147,9 @@
     <!-- Navegação lateral -->
     <button id="prev-btn" class="nav-side-btn" style="display: none;">←</button>
     <button id="next-btn" class="nav-side-btn">→</button>
+
+    <!-- Linhas líderes globais (atualizadas via JS) -->
+    <svg class="leader-line" id="leader-lines"></svg>
 
     <!-- Model Viewers -->
     <model-viewer id="mv-0" src="modelos/01.glb" ios-src="modelos/01.usdz" ar ar-modes="webxr scene-viewer quick-look"
@@ -252,7 +270,7 @@
       });
     });
 
-    // Animação (Pendurar / Voltar) - com correção para hotspots voltarem
+    // Animação (Pendurar / Voltar) - com delay para hotspots voltarem
     playBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         if (!isAtEnd) {
@@ -266,7 +284,9 @@
           viewers.forEach(v => {
             v.pause();
             v.currentTime = 0;
-            v.jumpToGoal(); // Força recálculo de posições e hotspots ao voltar
+            setTimeout(() => {
+              v.jumpToGoal(); // Recálculo com delay para hotspots voltarem
+            }, 100);
           });
           isAtEnd = false;
         }
@@ -304,6 +324,66 @@
         }
       });
     });
+
+    // Atualização das linhas azuis (só quando modelo 03 ativo)
+    function updateHotspotLines() {
+      const activeViewer = viewers[currentIndex];
+      if (activeViewer.id !== 'mv-2') {
+        document.getElementById('leader-lines').innerHTML = '';
+        return;
+      }
+
+      const svg = document.getElementById('leader-lines');
+      svg.innerHTML = '';
+
+      const hotspots = activeViewer.querySelectorAll('[slot^="hotspot-"]');
+      hotspots.forEach(hotspot => {
+        if (!hotspot.canvasPosition) return;
+
+        const pos = hotspot.canvasPosition;
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", pos.x);
+        line.setAttribute("y1", pos.y);
+        line.setAttribute("x2", pos.x + 150); // Ajuste horizontal
+        line.setAttribute("y2", pos.y - 120); // Ajuste vertical para caixa acima
+        svg.appendChild(line);
+
+        const annotation = hotspot.querySelector('.HotspotAnnotation');
+        if (annotation) {
+          annotation.style.left = `${pos.x + 150}px`;
+          annotation.style.top = `${pos.y - 120}px`;
+        }
+      });
+    }
+
+    // Loop otimizado: só atualiza quando necessário
+    let rafId = null;
+    function animateLines() {
+      updateHotspotLines();
+      rafId = requestAnimationFrame(animateLines);
+    }
+
+    // Inicia/parar o loop baseado no viewer ativo
+    viewers.forEach(v => {
+      v.addEventListener('load', () => {
+        if (v.id === 'mv-2' && currentIndex === 2) {
+          if (!rafId) animateLines();
+        }
+      });
+    });
+
+    // Para o loop quando trocar de modelo
+    const originalUpdateUI = updateUI;
+    updateUI = function() {
+      originalUpdateUI.apply(this, arguments);
+      if (currentIndex !== 2 && rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+        document.getElementById('leader-lines').innerHTML = '';
+      } else if (currentIndex === 2 && !rafId) {
+        animateLines();
+      }
+    };
 
     // Inicialização
     updateUI();
