@@ -105,8 +105,8 @@
     .animation-overlay-btn.reverse { background-color: #f4a261; }
     .animation-overlay-btn.reverse:active { background-color: #e76f51; }
 
-    /* Estilos para linhas e caixas fixas (inspirado no exemplo oficial do Google) */
-    .anchor { display: none; } /* Hotspots invisíveis */
+    /* Estilos para linha e caixa fixa (exatamente como no exemplo do Google) */
+    .anchor { display: none; } /* Hotspot invisível */
     .lineContainer {
       pointer-events: none;
       position: absolute;
@@ -123,11 +123,11 @@
     }
     #labels-container {
       position: absolute;
-      bottom: 80px; /* Ajuste se quiser mais perto ou mais longe da borda inferior */
+      bottom: 80px;
       left: 0;
       width: 100%;
       display: flex;
-      justify-content: space-evenly;
+      justify-content: center;
       pointer-events: none;
       z-index: 1000;
     }
@@ -142,10 +142,8 @@
       font-weight: 700;
       padding: 0.6em 1.2em;
       pointer-events: none;
-      max-width: 140px;
-      text-align: center;
     }
-    /* Oculta caixas e linhas quando não for o modelo 03 */
+    /* Oculta quando não for o modelo 03 */
     model-viewer:not(.active) ~ #labels-container,
     model-viewer:not(.active) ~ .lineContainer {
       display: none !important;
@@ -158,16 +156,14 @@
     <button id="prev-btn" class="nav-side-btn" style="display: none;">←</button>
     <button id="next-btn" class="nav-side-btn">→</button>
 
-    <!-- SVG para as linhas (global, como no exemplo do Google) -->
+    <!-- SVG para a linha azul -->
     <svg id="lines" class="lineContainer">
-      <line class="line"></line> <!-- Cupim -->
-      <!-- Você pode adicionar mais <line> se quiser linhas extras, mas por enquanto só 1 para teste -->
+      <line class="line"></line>
     </svg>
 
-    <!-- Caixas fixas na parte inferior (como no exemplo do Google) -->
+    <!-- Caixa de texto fixa na parte inferior -->
     <div id="labels-container">
       <button id="cupim" class="label">Cupim</button>
-      <!-- Adicione mais botões conforme necessário para os outros hotspots -->
     </div>
 
     <!-- Model Viewers -->
@@ -215,7 +211,7 @@
       </button>
       <button class="animation-overlay-btn">Pendurar</button>
 
-      <!-- Hotspot invisível (só para ancoragem da linha) -->
+      <!-- Hotspot invisível para ancoragem da linha -->
       <div class="anchor" slot="hotspot-10" data-surface="0 0 581 1905 1904 0.079 0.695 0.226"></div>
     </model-viewer>
 
@@ -248,7 +244,7 @@
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
     const modelViewer = viewers[2]; // mv-2 (modelo 03)
-    const lines = document.querySelectorAll('#lines .line');
+    const line = document.querySelector('#lines .line');
     const cupimLabel = document.getElementById('cupim');
     let baseRect = new DOMRect();
 
@@ -302,11 +298,12 @@
       if (currentIndex < viewers.length - 1) { currentIndex++; updateUI(); }
     });
 
-    // Botão "Ver em RA" (estável)
+    // Botão "Ver em RA" - versão estável
     document.querySelectorAll('.custom-ar-button').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         e.stopPropagation();
         const viewer = viewers[currentIndex];
+
         if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !/CriOS/.test(navigator.userAgent) && !/FxiOS/.test(navigator.userAgent)) {
           try {
             await viewer.activateAR();
@@ -324,35 +321,28 @@
       });
     });
 
-    // Função para atualizar as linhas (como no exemplo do Google)
-    function drawLine() {
-      if (currentIndex !== 2) {
-        document.getElementById('lines').innerHTML = '';
-        return;
-      }
-
-      const hotspot = modelViewer.queryHotspot('hotspot-10');
-      if (hotspot && hotspot.canvasPosition) {
-        const pos = hotspot.canvasPosition;
-        const labelRect = cupimLabel.getBoundingClientRect();
-        const line = document.querySelector('#lines .line');
-        line.setAttribute('x1', pos.x);
-        line.setAttribute('y1', pos.y);
-        line.setAttribute('x2', (labelRect.left + labelRect.right) / 2 - baseRect.left);
-        line.setAttribute('y2', labelRect.top - baseRect.top);
-      }
-
-      requestAnimationFrame(drawLine);
+    // Desenho da linha (exatamente como no exemplo do Google)
+    function onResize() {
+      const arStatus = modelViewer.getAttribute('ar-status');
+      baseRect = (arStatus === "not-presenting" || arStatus === "failed") ? modelViewer.getBoundingClientRect() : new DOMRect();
     }
+    window.addEventListener("resize", onResize);
 
-    // Inicializa quando o modelo 03 carrega
     modelViewer.addEventListener('load', () => {
-      baseRect = modelViewer.getBoundingClientRect();
-      drawLine(); // Inicia o loop de desenho
-    });
-
-    window.addEventListener("resize", () => {
-      baseRect = modelViewer.getBoundingClientRect();
+      onResize();
+      function drawLine() {
+        const hotspot = modelViewer.queryHotspot('hotspot-10');
+        if (hotspot && hotspot.canvasPosition) {
+          const pos = hotspot.canvasPosition;
+          const labelRect = cupimLabel.getBoundingClientRect();
+          line.setAttribute('x1', pos.x);
+          line.setAttribute('y1', pos.y);
+          line.setAttribute('x2', (labelRect.left + labelRect.right) / 2 - baseRect.left);
+          line.setAttribute('y2', labelRect.top - baseRect.top);
+        }
+        requestAnimationFrame(drawLine);
+      }
+      drawLine();
     });
 
     // Inicialização
