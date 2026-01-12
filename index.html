@@ -42,7 +42,7 @@
     /* Botão Ver em RA reposicionado para canto SUPERIOR direito */
     .custom-ar-button {
       position: absolute;
-      top: 20px; /* Alterado de bottom para top */
+      top: 20px;
       right: 20px;
       padding: 12px 20px;
       background: white;
@@ -57,7 +57,6 @@
       cursor: pointer;
       z-index: 1000;
     }
-    /* Garante que o botão AR só apareça no viewer ativo */
     model-viewer:not(.active) .custom-ar-button {
       display: none !important;
     }
@@ -105,6 +104,52 @@
     .animation-overlay-btn:active { transform: translateX(-50%) scale(0.95); background-color: #0056b3; }
     .animation-overlay-btn.reverse { background-color: #f4a261; }
     .animation-overlay-btn.reverse:active { background-color: #e76f51; }
+
+    /* Estilos para linhas e caixas fixas (inspirado no exemplo oficial do Google) */
+    .anchor { display: none; } /* Hotspots invisíveis */
+    .lineContainer {
+      pointer-events: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 999;
+    }
+    .line {
+      stroke: #16a5e6;
+      stroke-width: 2;
+      stroke-dasharray: 2;
+    }
+    #labels-container {
+      position: absolute;
+      bottom: 80px; /* Ajuste se quiser mais perto ou mais longe da borda inferior */
+      left: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-evenly;
+      pointer-events: none;
+      z-index: 1000;
+    }
+    .label {
+      background: #fff;
+      border-radius: 4px;
+      border: none;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+      color: rgba(0,0,0,0.8);
+      font-family: Arial, Helvetica Neue, sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      padding: 0.6em 1.2em;
+      pointer-events: none;
+      max-width: 140px;
+      text-align: center;
+    }
+    /* Oculta caixas e linhas quando não for o modelo 03 */
+    model-viewer:not(.active) ~ #labels-container,
+    model-viewer:not(.active) ~ .lineContainer {
+      display: none !important;
+    }
   </style>
 </head>
 <body>
@@ -112,6 +157,19 @@
     <!-- Navegação lateral -->
     <button id="prev-btn" class="nav-side-btn" style="display: none;">←</button>
     <button id="next-btn" class="nav-side-btn">→</button>
+
+    <!-- SVG para as linhas (global, como no exemplo do Google) -->
+    <svg id="lines" class="lineContainer">
+      <line class="line"></line> <!-- Cupim -->
+      <!-- Você pode adicionar mais <line> se quiser linhas extras, mas por enquanto só 1 para teste -->
+    </svg>
+
+    <!-- Caixas fixas na parte inferior (como no exemplo do Google) -->
+    <div id="labels-container">
+      <button id="cupim" class="label">Cupim</button>
+      <!-- Adicione mais botões conforme necessário para os outros hotspots -->
+    </div>
+
     <!-- Model Viewers -->
     <model-viewer id="mv-0" src="modelos/01.glb" ios-src="modelos/01.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
@@ -127,6 +185,7 @@
       </button>
       <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
+
     <model-viewer id="mv-1" src="modelos/02.glb" ios-src="modelos/02.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y">
@@ -141,6 +200,7 @@
       </button>
       <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
+
     <model-viewer id="mv-2" src="modelos/03.glb" ios-src="modelos/03.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y">
@@ -154,7 +214,11 @@
         Ver em RA
       </button>
       <button class="animation-overlay-btn">Pendurar</button>
+
+      <!-- Hotspot invisível (só para ancoragem da linha) -->
+      <div class="anchor" slot="hotspot-10" data-surface="0 0 581 1905 1904 0.079 0.695 0.226"></div>
     </model-viewer>
+
     <model-viewer id="mv-3" src="modelos/04.glb" ios-src="modelos/04.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y">
@@ -170,6 +234,7 @@
       <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
   </div>
+
   <script>
     const viewers = [
       document.getElementById('mv-0'),
@@ -182,16 +247,21 @@
     const playBtns = document.querySelectorAll('.animation-overlay-btn');
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
+    const modelViewer = viewers[2]; // mv-2 (modelo 03)
+    const lines = document.querySelectorAll('#lines .line');
+    const cupimLabel = document.getElementById('cupim');
+    let baseRect = new DOMRect();
+
     function updateUI() {
       viewers.forEach((v, i) => v.classList.toggle('active', i === currentIndex));
       prevBtn.style.display = currentIndex === 0 ? 'none' : 'flex';
       nextBtn.style.display = currentIndex === viewers.length - 1 ? 'none' : 'flex';
-      // Atualiza texto dos botões de animação
       playBtns.forEach(btn => {
         btn.textContent = isAtEnd ? 'Voltar' : 'Pendurar';
         btn.classList.toggle('reverse', isAtEnd);
       });
     }
+
     // Sincronização contínua de câmera
     viewers.forEach((v, i) => {
       v.addEventListener('camera-change', () => {
@@ -202,6 +272,7 @@
         });
       });
     });
+
     // Animação (Pendurar / Voltar)
     playBtns.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -222,6 +293,7 @@
         updateUI();
       });
     });
+
     // Navegação
     prevBtn.addEventListener('click', () => {
       if (currentIndex > 0) { currentIndex--; updateUI(); }
@@ -229,6 +301,60 @@
     nextBtn.addEventListener('click', () => {
       if (currentIndex < viewers.length - 1) { currentIndex++; updateUI(); }
     });
+
+    // Botão "Ver em RA" (estável)
+    document.querySelectorAll('.custom-ar-button').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const viewer = viewers[currentIndex];
+        if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !/CriOS/.test(navigator.userAgent) && !/FxiOS/.test(navigator.userAgent)) {
+          try {
+            await viewer.activateAR();
+          } catch (err) {
+            console.error('Erro ao ativar Quick Look:', err);
+            alert('Não foi possível abrir o modo RA no iOS.\nVerifique HTTPS, arquivos .usdz e Safari atualizado.');
+          }
+        } else {
+          if (await viewer.canActivateAR()) {
+            await viewer.activateAR();
+          } else {
+            alert('RA não disponível. Verifique Chrome e suporte ARCore.');
+          }
+        }
+      });
+    });
+
+    // Função para atualizar as linhas (como no exemplo do Google)
+    function drawLine() {
+      if (currentIndex !== 2) {
+        document.getElementById('lines').innerHTML = '';
+        return;
+      }
+
+      const hotspot = modelViewer.queryHotspot('hotspot-10');
+      if (hotspot && hotspot.canvasPosition) {
+        const pos = hotspot.canvasPosition;
+        const labelRect = cupimLabel.getBoundingClientRect();
+        const line = document.querySelector('#lines .line');
+        line.setAttribute('x1', pos.x);
+        line.setAttribute('y1', pos.y);
+        line.setAttribute('x2', (labelRect.left + labelRect.right) / 2 - baseRect.left);
+        line.setAttribute('y2', labelRect.top - baseRect.top);
+      }
+
+      requestAnimationFrame(drawLine);
+    }
+
+    // Inicializa quando o modelo 03 carrega
+    modelViewer.addEventListener('load', () => {
+      baseRect = modelViewer.getBoundingClientRect();
+      drawLine(); // Inicia o loop de desenho
+    });
+
+    window.addEventListener("resize", () => {
+      baseRect = modelViewer.getBoundingClientRect();
+    });
+
     // Inicialização
     updateUI();
   </script>
