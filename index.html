@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Cortes de Carnes Virtual</title>
+  <title>Galeria 3D com RA</title>
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <style>
     body {
@@ -42,7 +42,7 @@
     /* Botão Ver em RA reposicionado para canto SUPERIOR direito */
     .custom-ar-button {
       position: absolute;
-      top: 20px; /* Alterado de bottom para top */
+      top: 20px;
       right: 20px;
       padding: 12px 20px;
       background: white;
@@ -105,6 +105,30 @@
     .animation-overlay-btn:active { transform: translateX(-50%) scale(0.95); background-color: #0056b3; }
     .animation-overlay-btn.reverse { background-color: #f4a261; }
     .animation-overlay-btn.reverse:active { background-color: #e76f51; }
+
+    /* Estilos para os hotspots */
+    .Hotspot {
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      pointer-events: auto;
+    }
+    .HotspotAnnotation {
+      background: rgba(0,0,0,0.75);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      white-space: nowrap;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      pointer-events: none;
+    }
+
+    /* Oculta hotspots quando o viewer não está ativo */
+    model-viewer:not(.active) [slot^="hotspot-"] {
+      display: none !important;
+    }
   </style>
 </head>
 <body>
@@ -112,6 +136,7 @@
     <!-- Navegação lateral -->
     <button id="prev-btn" class="nav-side-btn" style="display: none;">←</button>
     <button id="next-btn" class="nav-side-btn">→</button>
+
     <!-- Model Viewers -->
     <model-viewer id="mv-0" src="modelos/01.glb" ios-src="modelos/01.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
@@ -127,6 +152,7 @@
       </button>
       <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
+
     <model-viewer id="mv-1" src="modelos/02.glb" ios-src="modelos/02.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y">
@@ -141,6 +167,7 @@
       </button>
       <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
+
     <model-viewer id="mv-2" src="modelos/03.glb" ios-src="modelos/03.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y">
@@ -154,7 +181,31 @@
         Ver em RA
       </button>
       <button class="animation-overlay-btn">Pendurar</button>
+
+      <!-- Hotspots do modelo 03 - só aparecem quando mv-2 estiver ativo -->
+      <button class="Hotspot" slot="hotspot-1" data-surface="0 0 3496 2819 3175 0.627 0.192 0.181" data-visibility-attribute="visible">
+        <div class="HotspotAnnotation">Cupim</div>
+      </button>
+      <button class="Hotspot" slot="hotspot-2" data-surface="0 0 3134 3130 4109 0.022 0.088 0.890" data-visibility-attribute="visible">
+        <div class="HotspotAnnotation">Acém</div>
+      </button>
+      <button class="Hotspot" slot="hotspot-3" data-surface="0 0 2349 2837 2836 0.647 0.128 0.225" data-visibility-attribute="visible">
+        <div class="HotspotAnnotation">Peito</div>
+      </button>
+      <button class="Hotspot" slot="hotspot-5" data-surface="0 0 3719 2669 4205 0.718 0.275 0.007" data-visibility-attribute="visible">
+        <div class="HotspotAnnotation">Picanha</div>
+      </button>
+      <button class="Hotspot" slot="hotspot-6" data-surface="0 0 2353 4060 2864 0.284 0.296 0.420" data-visibility-attribute="visible">
+        <div class="HotspotAnnotation">Ponta de Agulha</div>
+      </button>
+      <button class="Hotspot" slot="hotspot-7" data-surface="0 0 3613 3327 3615 0.036 0.191 0.773" data-visibility-attribute="visible">
+        <div class="HotspotAnnotation">Filé de Costela</div>
+      </button>
+      <button class="Hotspot" slot="hotspot-8" data-surface="0 0 3589 3591 3590 0.035 0.628 0.337" data-visibility-attribute="visible">
+        <div class="HotspotAnnotation">Fraudinha</div>
+      </button>
     </model-viewer>
+
     <model-viewer id="mv-3" src="modelos/04.glb" ios-src="modelos/04.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y">
@@ -170,6 +221,7 @@
       <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
   </div>
+
   <script>
     const viewers = [
       document.getElementById('mv-0'),
@@ -182,16 +234,17 @@
     const playBtns = document.querySelectorAll('.animation-overlay-btn');
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
+
     function updateUI() {
       viewers.forEach((v, i) => v.classList.toggle('active', i === currentIndex));
       prevBtn.style.display = currentIndex === 0 ? 'none' : 'flex';
       nextBtn.style.display = currentIndex === viewers.length - 1 ? 'none' : 'flex';
-      // Atualiza texto dos botões de animação
       playBtns.forEach(btn => {
         btn.textContent = isAtEnd ? 'Voltar' : 'Pendurar';
         btn.classList.toggle('reverse', isAtEnd);
       });
     }
+
     // Sincronização contínua de câmera
     viewers.forEach((v, i) => {
       v.addEventListener('camera-change', () => {
@@ -202,6 +255,7 @@
         });
       });
     });
+
     // Animação (Pendurar / Voltar)
     playBtns.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -222,6 +276,7 @@
         updateUI();
       });
     });
+
     // Navegação
     prevBtn.addEventListener('click', () => {
       if (currentIndex > 0) { currentIndex--; updateUI(); }
@@ -229,6 +284,30 @@
     nextBtn.addEventListener('click', () => {
       if (currentIndex < viewers.length - 1) { currentIndex++; updateUI(); }
     });
+
+    // Clique no botão "Ver em RA"
+    document.querySelectorAll('.custom-ar-button').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const viewer = viewers[currentIndex];
+
+        if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !/CriOS/.test(navigator.userAgent) && !/FxiOS/.test(navigator.userAgent)) {
+          try {
+            await viewer.activateAR();
+          } catch (err) {
+            console.error('Erro ao ativar Quick Look:', err);
+            alert('Não foi possível abrir o modo RA no iOS.\nVerifique HTTPS, arquivos .usdz e Safari atualizado.');
+          }
+        } else {
+          if (await viewer.canActivateAR()) {
+            await viewer.activateAR();
+          } else {
+            alert('RA não disponível. Verifique Chrome e suporte ARCore.');
+          }
+        }
+      });
+    });
+
     // Inicialização
     updateUI();
   </script>
