@@ -155,7 +155,7 @@
       stroke: #007bff;
       stroke-width: 3;
       stroke-linecap: round;
-      opacity: 1 !important;
+      opacity: 0; /* Começa invisível */
       transition: opacity 0.3s;
     }
 
@@ -311,7 +311,7 @@
       if (currentIndex === 2) updateLines();
     });
 
-    // Atualização das linhas dinâmicas (Callouts) - Correção da API
+    // Atualização das linhas dinâmicas (Callouts) - Correção de Rastreamento e Visibilidade
     function updateLines() {
       if (currentIndex === 2) {
         const mv = viewers[2];
@@ -324,8 +324,8 @@
           const x = hotspot.canvasPosition.x;
           const y = hotspot.canvasPosition.y;
 
-          // Se x e y forem 0, o model-viewer ainda não calculou a posição real (pulo inicial)
-          if (x === 0 && y === 0) {
+          // Só desenha se as coordenadas forem válidas E o botão "Pendurar" tiver sido clicado (isAtEnd)
+          if ((x === 0 && y === 0) || !isAtEnd) {
             line.style.opacity = '0';
             hotspotElem.style.opacity = '0';
             label.style.opacity = '0';
@@ -335,10 +335,11 @@
             line.setAttribute('x2', label.offsetLeft);
             line.setAttribute('y2', label.offsetTop + (label.offsetHeight / 2));
             
-            const isVisible = hotspotElem.dataset.visible === 'true';
-            line.style.opacity = isVisible ? '0.6' : '0';
+            // Usando a propriedade facingCamera da API para maior robustez
+            const isVisible = hotspot.facingCamera;
+            line.style.opacity = isVisible ? '1' : '0';
             hotspotElem.style.opacity = isVisible ? '1' : '0';
-            label.style.opacity = '1'; // A caixa de texto agora permanece visível após o carregamento
+            label.style.opacity = '1';
           }
         }
       }
