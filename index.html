@@ -268,13 +268,17 @@
         btn.classList.toggle('reverse', isAtEnd);
       });
     }
-    // Sincronização contínua de câmera
+    // Sincronização contínua de câmera (Orbit e Target)
     viewers.forEach((v, i) => {
       v.addEventListener('camera-change', () => {
         if (i !== currentIndex) return;
         const orbit = v.getCameraOrbit().toString();
+        const target = v.getCameraTarget().toString();
         viewers.forEach((other, j) => {
-          if (j !== currentIndex) other.cameraOrbit = orbit;
+          if (j !== currentIndex) {
+            other.cameraOrbit = orbit;
+            other.cameraTarget = target;
+          }
         });
       });
     });
