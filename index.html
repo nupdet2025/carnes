@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>3D Model Viewer with AR</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Cortes de Carnes Virtual</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <style>
     body {
       margin: 0;
@@ -25,8 +27,7 @@
       width: 100%;
       height: 100%;
       position: absolute;
-      top: 0;
-      left: 0;
+      top: 0; left: 0;
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.3s ease;
@@ -35,47 +36,34 @@
       opacity: 1;
       pointer-events: auto;
     }
-    
-    /* Controls Container */
-    .controls-container {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 1000;
+    /* Esconde o botão AR padrão */
+    model-viewer::part(default-ar-button) {
+      display: none !important;
     }
-    
-    /* Buttons must have pointer-events auto to be clickable */
-    .action-btn {
+    /* Botão Ver em RA reposicionado para canto SUPERIOR direito */
+    .custom-ar-button {
       position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 12px 24px;
-      font-size: 16px;
-      cursor: pointer;
-      background-color: #007bff;
-      color: white;
+      top: 20px; /* Alterado de bottom para top */
+      right: 20px;
+      padding: 12px 20px;
+      background: white;
+      color: #333;
       border: none;
       border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      pointer-events: auto; 
-      transition: all 0.2s ease;
+      font-weight: bold;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      z-index: 1000;
     }
-    .action-btn:active {
-      background-color: #0056b3;
-      transform: translateX(-50%) scale(0.95);
+    /* Garante que o botão AR só apareça no viewer ativo */
+    model-viewer:not(.active) .custom-ar-button {
+      display: none !important;
     }
-    .action-btn.reverse {
-      background-color: #f4a261;
-    }
-    .action-btn.reverse:active {
-      background-color: #e76f51;
-    }
-
-    .nav-btn {
+    /* Navegação lateral */
+    .nav-side-btn {
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
@@ -88,61 +76,205 @@
       font-size: 20px;
       font-weight: bold;
       cursor: pointer;
+      z-index: 1000;
       display: flex;
       justify-content: center;
       align-items: center;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transition: all 0.2s ease;
+    }
+    .nav-side-btn:active { transform: translateY(-50%) scale(0.9); background-color: #0056b3; }
+    #prev-btn { left: 20px; }
+    #next-btn { right: 20px; }
+    /* Botão de animação (Pendurar / Voltar) */
+    .animation-overlay-btn {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 14px 28px;
+      font-size: 17px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+      z-index: 1000;
       pointer-events: auto;
       transition: all 0.2s ease;
     }
-    .nav-btn:active {
-      transform: translateY(-50%) scale(0.9);
-      background-color: #0056b3;
+    .animation-overlay-btn:active { transform: translateX(-50%) scale(0.95); background-color: #0056b3; }
+    .animation-overlay-btn.reverse { background-color: #f4a261; }
+    .animation-overlay-btn.reverse:active { background-color: #e76f51; }
+
+    /* Estilos Premium para Hotspots e Callouts */
+    .hotspot-point {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 3px solid white;
+      background-color: #007bff;
+      box-shadow: 0 0 15px rgba(0,123,255,0.6);
+      pointer-events: none;
+      transition: opacity 0.3s;
+      opacity: 0; /* Começa invisível para evitar pulos */
     }
-    .prev-btn { left: 20px; }
-    .next-btn { right: 20px; }
+
+    .hotspot-label {
+      position: absolute;
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: #1a1a1a;
+      pointer-events: none;
+      z-index: 20;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      opacity: 0; /* Começa invisível */
+      transition: opacity 0.3s;
+    }
+
+    .hotspot-label.left {
+      left: 40px;
+      border-right: 3px solid #007bff;
+    }
+
+    .hotspot-label.right {
+      right: 40px;
+      border-left: 3px solid #007bff;
+    }
+
+    .line-container {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .line {
+      stroke: #007bff;
+      stroke-width: 3;
+      stroke-linecap: round;
+      opacity: 0; /* Começa invisível */
+      transition: opacity 0.3s;
+    }
+
+    /* Forçar visibilidade do SVG */
+    svg.line-container {
+      display: block !important;
+      overflow: visible !important;
+    }
+
+    model-viewer:not(.active) .hotspot-point,
+    model-viewer:not(.active) .hotspot-label,
+    model-viewer:not(.active) .line-container {
+      display: none;
+    }
   </style>
 </head>
 <body>
   <div class="viewer-container">
-    <!-- Viewer 0 -->
-    <model-viewer id="mv-0" src="modelos/01.glb" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false" class="active">
-      <div class="controls-container">
-        <button class="nav-btn prev-btn" style="display: none;">←</button>
-        <button class="nav-btn next-btn">→</button>
-        <button class="action-btn">Pendurar</button>
-      </div>
+    <!-- Navegação lateral -->
+    <button id="prev-btn" class="nav-side-btn" style="display: none;">←</button>
+    <button id="next-btn" class="nav-side-btn">→</button>
+    <!-- Model Viewers -->
+    <model-viewer id="mv-0" src="modelos/01.glb" ios-src="modelos/01.usdz" ar ar-modes="webxr scene-viewer quick-look"
+      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
+      animation-loop="false" touch-action="pan-y" class="active">
+      <button slot="ar-button" class="custom-ar-button">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
+          <path d="M17 3H15V5H17C18.1046 5 19 5.89543 19 7V9H21V7C21 4.79086 19.2091 3 17 3Z" fill="currentColor"/>
+          <path d="M21 17V15H19V17C19 18.1046 18.1046 19 17 19H15V21H17C19.2091 21 21 19.2091 21 17Z" fill="currentColor"/>
+          <path d="M7 21H9V19H7C5.89543 19 5 18.1046 5 17V15H3V17C3 19.2091 4.79086 21 7 21Z" fill="currentColor"/>
+        </svg>
+        Ver em RA
+      </button>
+      <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
-
-    <!-- Viewer 1 -->
-    <model-viewer id="mv-1" src="modelos/02.glb" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
-      <div class="controls-container">
-        <button class="nav-btn prev-btn">←</button>
-        <button class="nav-btn next-btn">→</button>
-        <button class="action-btn">Pendurar</button>
-      </div>
+    <model-viewer id="mv-1" src="modelos/02.glb" ios-src="modelos/02.usdz" ar ar-modes="webxr scene-viewer quick-look"
+      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
+      animation-loop="false" touch-action="pan-y">
+      <button slot="ar-button" class="custom-ar-button">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
+          <path d="M17 3H15V5H17C18.1046 5 19 5.89543 19 7V9H21V7C21 4.79086 19.2091 3 17 3Z" fill="currentColor"/>
+          <path d="M21 17V15H19V17C19 18.1046 18.1046 19 17 19H15V21H17C19.2091 21 21 19.2091 21 17Z" fill="currentColor"/>
+          <path d="M7 21H9V19H7C5.89543 19 5 18.1046 5 17V15H3V17C3 19.2091 4.79086 21 7 21Z" fill="currentColor"/>
+        </svg>
+        Ver em RA
+      </button>
+      <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
-
-    <!-- Viewer 2 -->
-    <model-viewer id="mv-2" src="modelos/03.glb" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
-      <div class="controls-container">
-        <button class="nav-btn prev-btn">←</button>
-        <button class="nav-btn next-btn">→</button>
-        <button class="action-btn">Pendurar</button>
-      </div>
+    <model-viewer id="mv-2" src="modelos/03.glb" ios-src="modelos/03.usdz" ar ar-modes="webxr scene-viewer quick-look"
+      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
+      animation-loop="false" touch-action="pan-y">
+      <button slot="ar-button" class="custom-ar-button">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
+          <path d="M17 3H15V5H17C18.1046 5 19 5.89543 19 7V9H21V7C21 4.79086 19.2091 3 17 3Z" fill="currentColor"/>
+          <path d="M21 17V15H19V17C19 18.1046 18.1046 19 17 19H15V21H17C19.2091 21 21 19.2091 21 17Z" fill="currentColor"/>
+          <path d="M7 21H9V19H7C5.89543 19 5 18.1046 5 17V15H3V17C3 19.2091 4.79086 21 7 21Z" fill="currentColor"/>
+        </svg>
+        Ver em RA
+      </button>
+      <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
+    <model-viewer id="mv-3" src="modelos/04.glb" ios-src="modelos/04.usdz" ar ar-modes="webxr scene-viewer quick-look"
+      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
+      animation-loop="false" touch-action="pan-y">
+      <button slot="ar-button" class="custom-ar-button">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
+          <path d="M17 3H15V5H17C18.1046 5 19 5.89543 19 7V9H21V7C21 4.79086 19.2091 3 17 3Z" fill="currentColor"/>
+          <path d="M21 17V15H19V17C19 18.1046 18.1046 19 17 19H15V21H17C19.2091 21 21 19.2091 21 17Z" fill="currentColor"/>
+          <path d="M7 21H9V19H7C5.89543 19 5 18.1046 5 17V15H3V17C3 19.2091 4.79086 21 7 21Z" fill="currentColor"/>
+        </svg>
+        Ver em RA
+      </button>
+      <button class="animation-overlay-btn">Pendurar</button>
 
-    <!-- Viewer 3 -->
-    <model-viewer id="mv-3" src="modelos/04.glb" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
-      <div class="controls-container">
-        <button class="nav-btn prev-btn">←</button>
-        <button class="nav-btn next-btn" style="display: none;">→</button>
-        <button class="action-btn">Pendurar</button>
-      </div>
+      <!-- Hotspots Pontos -->
+      <button slot="hotspot-cupim" class="hotspot-point" data-surface="0 0 1961 943 944 0.300 0.255 0.445" data-visibility-attribute="visible"></button>
+      <button slot="hotspot-3" class="hotspot-point" data-surface="0 0 1792 1795 1794 0.440 0.026 0.534" data-visibility-attribute="visible"></button>
+      <button slot="hotspot-4" class="hotspot-point" data-surface="0 0 206 699 698 0.229 0.102 0.669" data-visibility-attribute="visible"></button>
+      <button slot="hotspot-5" class="hotspot-point" data-surface="0 0 2128 1067 1068 0.231 0.214 0.554" data-visibility-attribute="visible"></button>
+      <button slot="hotspot-8" class="hotspot-point" data-surface="0 0 2115 2117 2116 0.531 0.225 0.244" data-visibility-attribute="visible"></button>
+      <button slot="hotspot-9" class="hotspot-point" data-surface="0 0 418 412 1194 0.647 0.189 0.164" data-visibility-attribute="visible"></button>
+      <button slot="hotspot-10" class="hotspot-point" data-surface="0 0 1626 2565 1625 0.053 0.699 0.248" data-visibility-attribute="visible"></button>
+      <button slot="hotspot-11" class="hotspot-point" data-surface="0 0 1039 1032 1033 0.552 0.094 0.354" data-visibility-attribute="visible"></button>
+      
+      <svg class="line-container" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+        <line id="line-cupim" class="line"></line>
+        <line id="line-3" class="line"></line>
+        <line id="line-4" class="line"></line>
+        <line id="line-5" class="line"></line>
+        <line id="line-8" class="line"></line>
+        <line id="line-9" class="line"></line>
+        <line id="line-10" class="line"></line>
+        <line id="line-11" class="line"></line>
+      </svg>
+
+      <!-- Labels Esquerda -->
+      <div id="label-cupim" class="hotspot-label left" style="top: 80px;">CUPIM</div>
+      <div id="label-9" class="hotspot-label left" style="top: 140px;">PALETA</div>
+      <div id="label-10" class="hotspot-label left" style="top: 200px;">ACÉM</div>
+      <div id="label-11" class="hotspot-label left" style="top: 260px;">PONTA DE AGULHA</div>
+
+      <!-- Labels Direita -->
+      <div id="label-3" class="hotspot-label right" style="top: 80px;">CONTRAFILÉ</div>
+      <div id="label-4" class="hotspot-label right" style="top: 140px;">PICANHA</div>
+      <div id="label-5" class="hotspot-label right" style="top: 200px;">ALCATRA COM MAMINHA</div>
+      <div id="label-8" class="hotspot-label right" style="top: 260px;">COXÃO DURO COM LAGARTO</div>
     </model-viewer>
   </div>
-
-  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <script>
     const viewers = [
       document.getElementById('mv-0'),
@@ -151,118 +283,119 @@
       document.getElementById('mv-3')
     ];
     let currentIndex = 0;
-    // Animation state must be tracked globally for the active model
     let isAtEnd = false;
-
-    // Get ALL instances of buttons from DOM
-    const playBtns = document.querySelectorAll('.action-btn');
-    const prevBtns = document.querySelectorAll('.prev-btn');
-    const nextBtns = document.querySelectorAll('.next-btn');
-
+    const playBtns = document.querySelectorAll('.animation-overlay-btn');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
     function updateUI() {
-      // 2D Visibility Toggle (Standard Multi-Viewer)
-      viewers.forEach((v, i) => {
-        if (i === currentIndex) {
-          v.classList.add('active');
-        } else {
-          v.classList.remove('active');
-        }
-      });
-
-      // Update Text/State on ALL duplicate buttons
+      viewers.forEach((v, i) => v.classList.toggle('active', i === currentIndex));
+      prevBtn.style.display = currentIndex === 0 ? 'none' : 'flex';
+      nextBtn.style.display = currentIndex === viewers.length - 1 ? 'none' : 'flex';
+      // Atualiza texto dos botões de animação
       playBtns.forEach(btn => {
-        btn.disabled = false;
-        if (isAtEnd) {
-          btn.textContent = 'Voltar';
-          btn.classList.add('reverse');
-        } else {
-          btn.textContent = 'Pendurar';
-          btn.classList.remove('reverse');
-        }
+        btn.textContent = isAtEnd ? 'Voltar' : 'Pendurar';
+        btn.classList.toggle('reverse', isAtEnd);
       });
-
-      // Update Visibility of Navigation arrows on ALL duplicate sets
-      prevBtns.forEach(btn => btn.style.display = currentIndex === 0 ? 'none' : 'flex');
-      nextBtns.forEach(btn => btn.style.display = currentIndex === viewers.length - 1 ? 'none' : 'flex');
     }
-
-    // BROADCAST CAMERA ROTATION
+    // Sincronização contínua de câmera (Orbit e Target)
     viewers.forEach((v, i) => {
-      v.addEventListener('camera-change', (event) => {
+      v.addEventListener('camera-change', () => {
         if (i !== currentIndex) return;
         const orbit = v.getCameraOrbit().toString();
-        
-        viewers.forEach((otherViewer, otherIndex) => {
-          if (otherIndex !== currentIndex) {
-            otherViewer.cameraOrbit = orbit;
+        const target = v.getCameraTarget().toString();
+        viewers.forEach((other, j) => {
+          if (j !== currentIndex) {
+            other.cameraOrbit = orbit;
+            other.cameraTarget = target;
           }
         });
       });
     });
-
-    // PURE 3D NAVIGATION HANDLER
-    function switchModel(newIndex) {
-      if (newIndex < 0 || newIndex >= viewers.length) return;
-      
-      // 2D MODE ONLY: Toggle Viewer Visibility
-      currentIndex = newIndex;
-      // PERSISTENCE: We keep isAtEnd logic as is (User Requirement)
-      updateUI();
-    }
-
-    // STRICT GLOBAL SYNC - PLAY/RESET HANDLER
+    // Animação (Pendurar / Voltar)
     playBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            if (btn.disabled) return;
-            // Lock all buttons to prevent race conditions
-            playBtns.forEach(b => b.disabled = true);
+      btn.addEventListener('click', () => {
+        if (!isAtEnd) {
+          viewers.forEach(v => {
+            v.currentTime = 0;
+            v.timeScale = 1;
+            v.play({ repetitions: 1 });
+          });
+          isAtEnd = true;
+        } else {
+          viewers.forEach(v => {
+            v.pause();
+            v.currentTime = 0;
+          });
+          isAtEnd = false;
+        }
+        updateUI();
+      });
+    });
+    // Navegação
+    prevBtn.addEventListener('click', () => {
+      if (currentIndex > 0) { currentIndex--; updateUI(); }
+    });
+    nextBtn.addEventListener('click', () => {
+      if (currentIndex < viewers.length - 1) { currentIndex++; updateUI(); }
+    });
 
-            const activeViewer = viewers[currentIndex];
-            
-            if (!isAtEnd) {
-                // COMMAND: PLAY ALL
-                // Synchronize all 4 models to Play Once
-                viewers.forEach(v => {
-                    v.currentTime = 0;
-                    v.timeScale = 1;
-                    v.play({ repetitions: 1 });
-                });
+    // Garante que o Modelo 04 compute o hotspot assim que carregar
+    viewers[3].addEventListener('load', () => {
+      if (currentIndex === 3) updateLines();
+    });
 
-                // Monitor only the active viewer to determine when animation ends
-                const checkEnd = () => {
-                    // Check if animation finished (approximate duration)
-                    if (activeViewer.duration > 0 && activeViewer.currentTime >= activeViewer.duration - 0.05) {
-                        isAtEnd = true;
-                        updateUI();
-                    } else if (!isAtEnd) {
-                        requestAnimationFrame(checkEnd);
-                    }
-                };
-                checkEnd();
+    const hotspotsConfig = [
+      { name: 'hotspot-cupim', labelId: 'label-cupim', lineId: 'line-cupim' },
+      { name: 'hotspot-3', labelId: 'label-3', lineId: 'line-3' },
+      { name: 'hotspot-4', labelId: 'label-4', lineId: 'line-4' },
+      { name: 'hotspot-5', labelId: 'label-5', lineId: 'line-5' },
+      { name: 'hotspot-8', labelId: 'label-8', lineId: 'line-8' },
+      { name: 'hotspot-9', labelId: 'label-9', lineId: 'line-9' },
+      { name: 'hotspot-10', labelId: 'label-10', lineId: 'line-10' },
+      { name: 'hotspot-11', labelId: 'label-11', lineId: 'line-11' }
+    ];
 
+    // Atualização das linhas dinâmicas (Callouts) - Correção de Rastreamento e Visibilidade
+    function updateLines() {
+      if (currentIndex === 3) {
+        const mv = viewers[3];
+        hotspotsConfig.forEach(config => {
+          const hotspot = mv.queryHotspot(config.name);
+          const hotspotElem = mv.querySelector(`[slot="${config.name}"]`);
+          const label = document.getElementById(config.labelId);
+          const line = document.getElementById(config.lineId);
+          
+          if (hotspot && hotspotElem && label && line) {
+            const x = hotspot.canvasPosition.x;
+            const y = hotspot.canvasPosition.y;
+
+            // Só desenha se as coordenadas forem válidas E o botão "Pendurar" tiver sido clicado (isAtEnd)
+            if ((x === 0 && y === 0) || !isAtEnd) {
+              line.style.opacity = '0';
+              hotspotElem.style.opacity = '0';
+              label.style.opacity = '0';
             } else {
-                // COMMAND: RESET ALL
-                // Synchronize all 4 models to Reset to Frame 1 (Time 0)
-                viewers.forEach(v => {
-                    v.pause();
-                    v.currentTime = 0;
-                });
-                isAtEnd = false;
-                updateUI();
+              line.setAttribute('x1', x);
+              line.setAttribute('y1', y);
+              
+              const isLeft = label.classList.contains('left');
+              line.setAttribute('x2', isLeft ? label.offsetLeft + label.offsetWidth : label.offsetLeft);
+              line.setAttribute('y2', label.offsetTop + (label.offsetHeight / 2));
+              
+              // Usando a propriedade facingCamera da API para maior robustez
+              const isVisible = hotspot.facingCamera;
+              line.style.opacity = isVisible ? '1' : '0';
+              hotspotElem.style.opacity = isVisible ? '1' : '0';
+              label.style.opacity = '1';
             }
+          }
         });
-    });
+      }
+      requestAnimationFrame(updateLines);
+    }
+    updateLines();
 
-    // NAVIGATION CLICKS
-    prevBtns.forEach(btn => {
-      btn.addEventListener('click', () => switchModel(currentIndex - 1));
-    });
-
-    nextBtns.forEach(btn => {
-      btn.addEventListener('click', () => switchModel(currentIndex + 1));
-    });
-
-    // Initial State
+    // Inicialização
     updateUI();
   </script>
 </body>
