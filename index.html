@@ -173,6 +173,20 @@
       overflow: visible !important;
     }
 
+    /* Estilos específicos para modo de Realidade Aumentada (RA) */
+    model-viewer[ar-status="session-started"] .hotspot-point {
+      width: 8px;
+      height: 8px;
+      border-width: 2px;
+    }
+    model-viewer[ar-status="session-started"] .hotspot-label {
+      font-size: 10px;
+      padding: 4px 8px;
+    }
+    model-viewer[ar-status="session-started"] .line {
+      stroke-width: 1.5;
+    }
+
     model-viewer:not(.active) .hotspot-point,
     model-viewer:not(.active) .hotspot-label,
     model-viewer:not(.active) .line-container {
@@ -266,13 +280,13 @@
       </svg>
 
       <!-- Labels Esquerda -->
-      <div id="label-11" class="hotspot-label left" style="top: 10%;">PONTA DE AGULHA</div>
-      <div id="label-12" class="hotspot-label left" style="top: 36.6%;">FILÉ MIGNON</div>
-      <div id="label-9" class="hotspot-label left" style="top: 63.3%;">PALETA</div>
+      <div id="label-8" class="hotspot-label left" style="top: 10%;">COXÃO DURO COM LAGARTO</div>
+      <div id="label-11" class="hotspot-label left" style="top: 30%;">PONTA DE AGULHA</div>
+      <div id="label-12" class="hotspot-label left" style="top: 48%;">FILÉ MIGNON</div>
+      <div id="label-9" class="hotspot-label left" style="top: 70%;">PALETA</div>
       <div id="label-10" class="hotspot-label left" style="top: 90%;">ACÉM</div>
 
       <!-- Labels Direita -->
-      <div id="label-8" class="hotspot-label right" style="top: 10%;">COXÃO DURO COM LAGARTO</div>
       <div id="label-5" class="hotspot-label right" style="top: 30%;">ALCATRA COM MAMINHA</div>
       <div id="label-4" class="hotspot-label right" style="top: 50%;">PICANHA</div>
       <div id="label-3" class="hotspot-label right" style="top: 70%;">CONTRAFILÉ</div>
