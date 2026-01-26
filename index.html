@@ -137,6 +137,7 @@
       letter-spacing: 0.5px;
       text-transform: uppercase;
       opacity: 0; /* Começa invisível */
+      transform: translateY(-50%);
       transition: opacity 0.3s;
     }
 
@@ -250,6 +251,7 @@
       <button slot="hotspot-9" class="hotspot-point" data-surface="0 0 418 412 1194 0.647 0.189 0.164" data-visibility-attribute="visible"></button>
       <button slot="hotspot-10" class="hotspot-point" data-surface="0 0 1626 2565 1625 0.053 0.699 0.248" data-visibility-attribute="visible"></button>
       <button slot="hotspot-11" class="hotspot-point" data-surface="0 0 1039 1032 1033 0.552 0.094 0.354" data-visibility-attribute="visible"></button>
+      <button slot="hotspot-12" class="hotspot-point" data-surface="0 1 226 227 229 0.193 0.383 0.424" data-visibility-attribute="visible"></button>
       
       <svg class="line-container" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
         <line id="line-cupim" class="line"></line>
@@ -260,19 +262,21 @@
         <line id="line-9" class="line"></line>
         <line id="line-10" class="line"></line>
         <line id="line-11" class="line"></line>
+        <line id="line-12" class="line"></line>
       </svg>
 
       <!-- Labels Esquerda -->
-      <div id="label-cupim" class="hotspot-label left" style="top: 80px;">CUPIM</div>
-      <div id="label-9" class="hotspot-label left" style="top: 140px;">PALETA</div>
-      <div id="label-10" class="hotspot-label left" style="top: 200px;">ACÉM</div>
-      <div id="label-11" class="hotspot-label left" style="top: 260px;">PONTA DE AGULHA</div>
+      <div id="label-11" class="hotspot-label left" style="top: 10%;">PONTA DE AGULHA</div>
+      <div id="label-12" class="hotspot-label left" style="top: 36.6%;">FILÉ MIGNON</div>
+      <div id="label-9" class="hotspot-label left" style="top: 63.3%;">PALETA</div>
+      <div id="label-10" class="hotspot-label left" style="top: 90%;">ACÉM</div>
 
       <!-- Labels Direita -->
-      <div id="label-3" class="hotspot-label right" style="top: 80px;">CONTRAFILÉ</div>
-      <div id="label-4" class="hotspot-label right" style="top: 140px;">PICANHA</div>
-      <div id="label-5" class="hotspot-label right" style="top: 200px;">ALCATRA COM MAMINHA</div>
-      <div id="label-8" class="hotspot-label right" style="top: 260px;">COXÃO DURO COM LAGARTO</div>
+      <div id="label-8" class="hotspot-label right" style="top: 10%;">COXÃO DURO COM LAGARTO</div>
+      <div id="label-5" class="hotspot-label right" style="top: 30%;">ALCATRA COM MAMINHA</div>
+      <div id="label-4" class="hotspot-label right" style="top: 50%;">PICANHA</div>
+      <div id="label-3" class="hotspot-label right" style="top: 70%;">CONTRAFILÉ</div>
+      <div id="label-cupim" class="hotspot-label right" style="top: 90%;">CUPIM</div>
     </model-viewer>
   </div>
   <script>
@@ -352,7 +356,8 @@
       { name: 'hotspot-8', labelId: 'label-8', lineId: 'line-8' },
       { name: 'hotspot-9', labelId: 'label-9', lineId: 'line-9' },
       { name: 'hotspot-10', labelId: 'label-10', lineId: 'line-10' },
-      { name: 'hotspot-11', labelId: 'label-11', lineId: 'line-11' }
+      { name: 'hotspot-11', labelId: 'label-11', lineId: 'line-11' },
+      { name: 'hotspot-12', labelId: 'label-12', lineId: 'line-12' }
     ];
 
     // Atualização das linhas dinâmicas (Callouts) - Correção de Rastreamento e Visibilidade
@@ -380,7 +385,7 @@
               
               const isLeft = label.classList.contains('left');
               line.setAttribute('x2', isLeft ? label.offsetLeft + label.offsetWidth : label.offsetLeft);
-              line.setAttribute('y2', label.offsetTop + (label.offsetHeight / 2));
+              line.setAttribute('y2', label.offsetTop); // Ajustado para transform: translateY(-50%)
               
               // Usando a propriedade facingCamera da API para maior robustez
               const isVisible = hotspot.facingCamera;
