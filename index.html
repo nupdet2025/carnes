@@ -122,14 +122,14 @@
 
     .hotspot-label {
       position: absolute;
-      padding: 6px 12px;
+      padding: 3px 6px;
       background: rgba(255, 255, 255, 0.9);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
-      border-radius: 8px;
+      border-radius: 4px;
       box-shadow: 0 4px 16px rgba(0,0,0,0.1);
       font-family: 'Outfit', sans-serif;
-      font-size: 13px;
+      font-size: 10px;
       font-weight: 700;
       color: #1a1a1a;
       pointer-events: none;
@@ -142,13 +142,13 @@
     }
 
     .hotspot-label.left {
-      left: 40px;
-      border-right: 3px solid #007bff;
+      left: 5px;
+      border-right: 2px solid #007bff;
     }
 
     .hotspot-label.right {
-      right: 40px;
-      border-left: 3px solid #007bff;
+      right: 5px;
+      border-left: 2px solid #007bff;
     }
 
     .line-container {
@@ -161,7 +161,7 @@
 
     .line {
       stroke: #007bff;
-      stroke-width: 3;
+      stroke-width: 1;
       stroke-linecap: round;
       opacity: 0; /* Começa invisível */
       transition: opacity 0.3s;
@@ -175,16 +175,16 @@
 
     /* Estilos específicos para modo de Realidade Aumentada (RA) */
     model-viewer[ar-status="session-started"] .hotspot-point {
-      width: 8px;
-      height: 8px;
-      border-width: 2px;
+      width: 6px;
+      height: 6px;
+      border-width: 1px;
     }
     model-viewer[ar-status="session-started"] .hotspot-label {
-      font-size: 10px;
-      padding: 4px 8px;
+      font-size: 8px;
+      padding: 2px 4px;
     }
     model-viewer[ar-status="session-started"] .line {
-      stroke-width: 1.5;
+      stroke-width: 1;
     }
 
     model-viewer:not(.active) .hotspot-point,
