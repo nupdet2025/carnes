@@ -117,38 +117,28 @@
       box-shadow: 0 0 15px rgba(0,123,255,0.6);
       pointer-events: none;
       transition: opacity 0.3s;
-      opacity: 0; /* Começa invisível para evitar pulos */
     }
+    .hotspot-point[data-visible="false"] { opacity: 0; }
 
     .hotspot-label {
       position: absolute;
-      padding: 3px 6px;
+      top: 60px;
+      right: 40px;
+      padding: 12px 24px;
       background: rgba(255, 255, 255, 0.9);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
-      border-radius: 4px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      border-radius: 12px;
+      border-left: 6px solid #007bff;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
       font-family: 'Outfit', sans-serif;
-      font-size: 10px;
+      font-size: 18px;
       font-weight: 700;
       color: #1a1a1a;
       pointer-events: none;
       z-index: 20;
       letter-spacing: 0.5px;
       text-transform: uppercase;
-      opacity: 0; /* Começa invisível */
-      transform: translateY(-50%);
-      transition: opacity 0.3s;
-    }
-
-    .hotspot-label.left {
-      left: 5px;
-      border-right: 2px solid #007bff;
-    }
-
-    .hotspot-label.right {
-      right: 5px;
-      border-left: 2px solid #007bff;
     }
 
     .line-container {
@@ -161,9 +151,9 @@
 
     .line {
       stroke: #007bff;
-      stroke-width: 1;
+      stroke-width: 3;
       stroke-linecap: round;
-      opacity: 0; /* Começa invisível */
+      opacity: 1 !important;
       transition: opacity 0.3s;
     }
 
@@ -171,15 +161,6 @@
     svg.line-container {
       display: block !important;
       overflow: visible !important;
-    }
-
-    /* Esconde totalmente os hotspots, anotações e botões de UI durante a Realidade Aumentada (RA) */
-    model-viewer[ar-status="session-started"] .hotspot-point,
-    model-viewer[ar-status="session-started"] .hotspot-label,
-    model-viewer[ar-status="session-started"] .line-container,
-    model-viewer[ar-status="session-started"] .animation-overlay-btn,
-    .viewer-container:has(model-viewer[ar-status="session-started"]) .nav-side-btn {
-      display: none !important;
     }
 
     model-viewer:not(.active) .hotspot-point,
@@ -197,8 +178,7 @@
     <!-- Model Viewers -->
     <model-viewer id="mv-0" src="modelos/01.glb" ios-src="modelos/01.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
-      ar-scale="auto" ar-placement="floor"
-      animation-loop="false" touch-action="none" class="active">
+      animation-loop="false" touch-action="pan-y" class="active">
       <button slot="ar-button" class="custom-ar-button">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
@@ -212,7 +192,6 @@
     </model-viewer>
     <model-viewer id="mv-1" src="modelos/02.glb" ios-src="modelos/02.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
-      ar-scale="auto" ar-placement="floor"
       animation-loop="false" touch-action="pan-y">
       <button slot="ar-button" class="custom-ar-button">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -227,7 +206,6 @@
     </model-viewer>
     <model-viewer id="mv-2" src="modelos/03.glb" ios-src="modelos/03.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
-      ar-scale="auto" ar-placement="floor"
       animation-loop="false" touch-action="pan-y">
       <button slot="ar-button" class="custom-ar-button">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -239,10 +217,20 @@
         Ver em RA
       </button>
       <button class="animation-overlay-btn">Pendurar</button>
+
+      <!-- Hotspot e Callout -->
+      <button slot="hotspot-cupim" class="hotspot-point" 
+        data-surface="0 0 581 1905 1904 0.079 0.695 0.226" 
+        data-visibility-attribute="visible"></button>
+      
+      <svg class="line-container" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+        <line id="line-cupim" class="line" x1="0" y1="0" x2="0" y2="0"></line>
+      </svg>
+
+      <div id="label-cupim" class="hotspot-label">CUPIM</div>
     </model-viewer>
     <model-viewer id="mv-3" src="modelos/04.glb" ios-src="modelos/04.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
-      ar-scale="auto" ar-placement="floor"
       animation-loop="false" touch-action="pan-y">
       <button slot="ar-button" class="custom-ar-button">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -254,42 +242,6 @@
         Ver em RA
       </button>
       <button class="animation-overlay-btn">Pendurar</button>
-
-      <!-- Hotspots Pontos -->
-      <button slot="hotspot-cupim" class="hotspot-point" data-surface="0 0 1961 943 944 0.300 0.255 0.445" data-visibility-attribute="visible"></button>
-      <button slot="hotspot-3" class="hotspot-point" data-surface="0 0 1792 1795 1794 0.440 0.026 0.534" data-visibility-attribute="visible"></button>
-      <button slot="hotspot-4" class="hotspot-point" data-surface="0 0 206 699 698 0.229 0.102 0.669" data-visibility-attribute="visible"></button>
-      <button slot="hotspot-5" class="hotspot-point" data-surface="0 0 2128 1067 1068 0.231 0.214 0.554" data-visibility-attribute="visible"></button>
-      <button slot="hotspot-8" class="hotspot-point" data-surface="0 0 2115 2117 2116 0.531 0.225 0.244" data-visibility-attribute="visible"></button>
-      <button slot="hotspot-9" class="hotspot-point" data-surface="0 0 418 412 1194 0.647 0.189 0.164" data-visibility-attribute="visible"></button>
-      <button slot="hotspot-10" class="hotspot-point" data-surface="0 0 1626 2565 1625 0.053 0.699 0.248" data-visibility-attribute="visible"></button>
-      <button slot="hotspot-11" class="hotspot-point" data-surface="0 0 1039 1032 1033 0.552 0.094 0.354" data-visibility-attribute="visible"></button>
-      <button slot="hotspot-12" class="hotspot-point" data-surface="0 1 226 227 229 0.193 0.383 0.424" data-visibility-attribute="visible"></button>
-      
-      <svg class="line-container" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-        <line id="line-cupim" class="line"></line>
-        <line id="line-3" class="line"></line>
-        <line id="line-4" class="line"></line>
-        <line id="line-5" class="line"></line>
-        <line id="line-8" class="line"></line>
-        <line id="line-9" class="line"></line>
-        <line id="line-10" class="line"></line>
-        <line id="line-11" class="line"></line>
-        <line id="line-12" class="line"></line>
-      </svg>
-
-      <!-- Labels Esquerda -->
-      <div id="label-8" class="hotspot-label left" style="top: 10%;">COXÃO DURO COM LAGARTO</div>
-      <div id="label-11" class="hotspot-label left" style="top: 30%;">PONTA DE AGULHA</div>
-      <div id="label-12" class="hotspot-label left" style="top: 42%;">FILÉ MIGNON</div>
-      <div id="label-9" class="hotspot-label left" style="top: 70%;">PALETA</div>
-      <div id="label-10" class="hotspot-label left" style="top: 90%;">ACÉM</div>
-
-      <!-- Labels Direita -->
-      <div id="label-5" class="hotspot-label right" style="top: 25%;">ALCATRA COM MAMINHA</div>
-      <div id="label-4" class="hotspot-label right" style="top: 50%;">PICANHA</div>
-      <div id="label-3" class="hotspot-label right" style="top: 70%;">CONTRAFILÉ</div>
-      <div id="label-cupim" class="hotspot-label right" style="top: 90%;">CUPIM</div>
     </model-viewer>
   </div>
   <script>
@@ -314,21 +266,13 @@
         btn.classList.toggle('reverse', isAtEnd);
       });
     }
-    // Sincronização contínua de câmera (Orbit e Target)
+    // Sincronização contínua de câmera
     viewers.forEach((v, i) => {
       v.addEventListener('camera-change', () => {
         if (i !== currentIndex) return;
-
-        // CRÍTICO: Se estiver em RA, desativa a sincronização para liberar os controles de touch
-        if (v.getAttribute('ar-status') === 'session-started') return;
-
         const orbit = v.getCameraOrbit().toString();
-        const target = v.getCameraTarget().toString();
         viewers.forEach((other, j) => {
-          if (j !== currentIndex) {
-            other.cameraOrbit = orbit;
-            other.cameraTarget = target;
-          }
+          if (j !== currentIndex) other.cameraOrbit = orbit;
         });
       });
     });
@@ -359,59 +303,27 @@
     nextBtn.addEventListener('click', () => {
       if (currentIndex < viewers.length - 1) { currentIndex++; updateUI(); }
     });
-
-    // Garante que o Modelo 04 compute o hotspot assim que carregar
-    viewers[3].addEventListener('load', () => {
-      if (currentIndex === 3) updateLines();
-    });
-
-    const hotspotsConfig = [
-      { name: 'hotspot-cupim', labelId: 'label-cupim', lineId: 'line-cupim' },
-      { name: 'hotspot-3', labelId: 'label-3', lineId: 'line-3' },
-      { name: 'hotspot-4', labelId: 'label-4', lineId: 'line-4' },
-      { name: 'hotspot-5', labelId: 'label-5', lineId: 'line-5' },
-      { name: 'hotspot-8', labelId: 'label-8', lineId: 'line-8' },
-      { name: 'hotspot-9', labelId: 'label-9', lineId: 'line-9' },
-      { name: 'hotspot-10', labelId: 'label-10', lineId: 'line-10' },
-      { name: 'hotspot-11', labelId: 'label-11', lineId: 'line-11' },
-      { name: 'hotspot-12', labelId: 'label-12', lineId: 'line-12' }
-    ];
-
-    // Atualização das linhas dinâmicas (Callouts) - Correção de Rastreamento e Visibilidade
+    // Atualização das linhas dinâmicas (Callouts) - Correção da API
     function updateLines() {
-      if (currentIndex === 3) {
-        const mv = viewers[3];
-        hotspotsConfig.forEach(config => {
-          const hotspot = mv.queryHotspot(config.name);
-          const hotspotElem = mv.querySelector(`[slot="${config.name}"]`);
-          const label = document.getElementById(config.labelId);
-          const line = document.getElementById(config.lineId);
+      if (currentIndex === 2) {
+        const mv = viewers[2];
+        const hotspot = mv.queryHotspot('hotspot-cupim');
+        const hotspotElem = mv.querySelector('[slot="hotspot-cupim"]');
+        const label = document.getElementById('label-cupim');
+        const line = document.getElementById('line-cupim');
+        
+        if (hotspot && hotspotElem && label && line) {
+          // A API correta utiliza hotspot.canvasPosition.x e y
+          line.setAttribute('x1', hotspot.canvasPosition.x);
+          line.setAttribute('y1', hotspot.canvasPosition.y);
           
-          if (hotspot && hotspotElem && label && line) {
-            const x = hotspot.canvasPosition.x;
-            const y = hotspot.canvasPosition.y;
-
-            // Só desenha se as coordenadas forem válidas E o botão "Pendurar" tiver sido clicado (isAtEnd)
-            if ((x === 0 && y === 0) || !isAtEnd) {
-              line.style.opacity = '0';
-              hotspotElem.style.opacity = '0';
-              label.style.opacity = '0';
-            } else {
-              line.setAttribute('x1', x);
-              line.setAttribute('y1', y);
-              
-              const isLeft = label.classList.contains('left');
-              line.setAttribute('x2', isLeft ? label.offsetLeft + label.offsetWidth : label.offsetLeft);
-              line.setAttribute('y2', label.offsetTop); // Ajustado para transform: translateY(-50%)
-              
-              // Usando a propriedade facingCamera da API para maior robustez
-              const isVisible = hotspot.facingCamera;
-              line.style.opacity = isVisible ? '1' : '0';
-              hotspotElem.style.opacity = isVisible ? '1' : '0';
-              label.style.opacity = '1';
-            }
-          }
-        });
+          // Mantendo a referência da label relativa ao viewer
+          line.setAttribute('x2', label.offsetLeft);
+          line.setAttribute('y2', label.offsetTop + (label.offsetHeight / 2));
+          
+          const isVisible = hotspotElem.dataset.visible === 'true';
+          line.style.opacity = isVisible ? '1' : '0';
+        }
       }
       requestAnimationFrame(updateLines);
     }
