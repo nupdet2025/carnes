@@ -179,18 +179,11 @@
       overflow: visible !important;
     }
 
-    /* Estilos específicos para modo de Realidade Aumentada (RA) */
-    model-viewer[ar-status="session-started"] .hotspot-point {
-      width: 6px;
-      height: 6px;
-      border-width: 1px;
-    }
-    model-viewer[ar-status="session-started"] .hotspot-label {
-      font-size: 8px;
-      padding: 2px 4px;
-    }
-    model-viewer[ar-status="session-started"] .line {
-      stroke-width: 1;
+    /* Esconde totalmente os hotspots e anotações durante a Realidade Aumentada (RA) */
+    model-viewer[ar-status="session-started"] .hotspot-point,
+    model-viewer[ar-status="session-started"] .hotspot-label,
+    model-viewer[ar-status="session-started"] .line-container {
+      display: none !important;
     }
 
     model-viewer:not(.active) .hotspot-point,
