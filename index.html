@@ -173,18 +173,11 @@
       overflow: visible !important;
     }
 
-    /* Estilos específicos para modo de Realidade Aumentada (RA) */
-    model-viewer[ar-status="session-started"] .hotspot-point {
-      width: 6px;
-      height: 6px;
-      border-width: 1px;
-    }
-    model-viewer[ar-status="session-started"] .hotspot-label {
-      font-size: 8px;
-      padding: 2px 4px;
-    }
-    model-viewer[ar-status="session-started"] .line {
-      stroke-width: 1;
+    /* Esconde totalmente os hotspots e anotações durante a Realidade Aumentada (RA) */
+    model-viewer[ar-status="session-started"] .hotspot-point,
+    model-viewer[ar-status="session-started"] .hotspot-label,
+    model-viewer[ar-status="session-started"] .line-container {
+      display: none !important;
     }
 
     model-viewer:not(.active) .hotspot-point,
@@ -202,7 +195,8 @@
     <!-- Model Viewers -->
     <model-viewer id="mv-0" src="modelos/01.glb" ios-src="modelos/01.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
-      animation-loop="false" touch-action="pan-y" class="active">
+      ar-scale="auto" ar-placement="floor"
+      animation-loop="false" touch-action="none" class="active">
       <button slot="ar-button" class="custom-ar-button">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
@@ -216,7 +210,8 @@
     </model-viewer>
     <model-viewer id="mv-1" src="modelos/02.glb" ios-src="modelos/02.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
-      animation-loop="false" touch-action="pan-y">
+      ar-scale="auto" ar-placement="floor"
+      animation-loop="false" touch-action="none">
       <button slot="ar-button" class="custom-ar-button">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
@@ -230,7 +225,8 @@
     </model-viewer>
     <model-viewer id="mv-2" src="modelos/03.glb" ios-src="modelos/03.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
-      animation-loop="false" touch-action="pan-y">
+      ar-scale="auto" ar-placement="floor"
+      animation-loop="false" touch-action="none">
       <button slot="ar-button" class="custom-ar-button">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
@@ -244,7 +240,8 @@
     </model-viewer>
     <model-viewer id="mv-3" src="modelos/04.glb" ios-src="modelos/04.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
-      animation-loop="false" touch-action="pan-y">
+      ar-scale="auto" ar-placement="floor"
+      animation-loop="false" touch-action="none">
       <button slot="ar-button" class="custom-ar-button">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
