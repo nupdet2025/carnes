@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Cortes de Carnes Virtual</title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <style>
     body {
@@ -106,68 +105,6 @@
     .animation-overlay-btn:active { transform: translateX(-50%) scale(0.95); background-color: #0056b3; }
     .animation-overlay-btn.reverse { background-color: #f4a261; }
     .animation-overlay-btn.reverse:active { background-color: #e76f51; }
-
-    /* Estilos Premium para Hotspots e Callouts */
-    .hotspot-point {
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      border: 3px solid white;
-      background-color: #007bff;
-      box-shadow: 0 0 15px rgba(0,123,255,0.6);
-      pointer-events: none;
-      transition: opacity 0.3s;
-    }
-    .hotspot-point[data-visible="false"] { opacity: 0; }
-
-    .hotspot-label {
-      position: absolute;
-      top: 60px;
-      right: 40px;
-      padding: 12px 24px;
-      background: rgba(255, 255, 255, 0.9);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border-radius: 12px;
-      border-left: 6px solid #007bff;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-      font-family: 'Outfit', sans-serif;
-      font-size: 18px;
-      font-weight: 700;
-      color: #1a1a1a;
-      pointer-events: none;
-      z-index: 20;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-    }
-
-    .line-container {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      pointer-events: none;
-      z-index: 10;
-    }
-
-    .line {
-      stroke: #007bff;
-      stroke-width: 3;
-      stroke-linecap: round;
-      opacity: 1 !important;
-      transition: opacity 0.3s;
-    }
-
-    /* Forçar visibilidade do SVG */
-    svg.line-container {
-      display: block !important;
-      overflow: visible !important;
-    }
-
-    model-viewer:not(.active) .hotspot-point,
-    model-viewer:not(.active) .hotspot-label,
-    model-viewer:not(.active) .line-container {
-      display: none;
-    }
   </style>
 </head>
 <body>
@@ -217,17 +154,6 @@
         Ver em RA
       </button>
       <button class="animation-overlay-btn">Pendurar</button>
-
-      <!-- Hotspot e Callout -->
-      <button slot="hotspot-cupim" class="hotspot-point" 
-        data-surface="0 0 581 1905 1904 0.079 0.695 0.226" 
-        data-visibility-attribute="visible"></button>
-      
-      <svg class="line-container" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-        <line id="line-cupim" class="line" x1="0" y1="0" x2="0" y2="0"></line>
-      </svg>
-
-      <div id="label-cupim" class="hotspot-label">CUPIM</div>
     </model-viewer>
     <model-viewer id="mv-3" src="modelos/04.glb" ios-src="modelos/04.usdz" ar ar-modes="webxr scene-viewer quick-look"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
@@ -303,32 +229,6 @@
     nextBtn.addEventListener('click', () => {
       if (currentIndex < viewers.length - 1) { currentIndex++; updateUI(); }
     });
-    // Atualização das linhas dinâmicas (Callouts) - Correção da API
-    function updateLines() {
-      if (currentIndex === 2) {
-        const mv = viewers[2];
-        const hotspot = mv.queryHotspot('hotspot-cupim');
-        const hotspotElem = mv.querySelector('[slot="hotspot-cupim"]');
-        const label = document.getElementById('label-cupim');
-        const line = document.getElementById('line-cupim');
-        
-        if (hotspot && hotspotElem && label && line) {
-          // A API correta utiliza hotspot.canvasPosition.x e y
-          line.setAttribute('x1', hotspot.canvasPosition.x);
-          line.setAttribute('y1', hotspot.canvasPosition.y);
-          
-          // Mantendo a referência da label relativa ao viewer
-          line.setAttribute('x2', label.offsetLeft);
-          line.setAttribute('y2', label.offsetTop + (label.offsetHeight / 2));
-          
-          const isVisible = hotspotElem.dataset.visible === 'true';
-          line.style.opacity = isVisible ? '1' : '0';
-        }
-      }
-      requestAnimationFrame(updateLines);
-    }
-    updateLines();
-
     // Inicialização
     updateUI();
   </script>
