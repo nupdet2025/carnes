@@ -178,7 +178,7 @@
     model-viewer[ar-status="session-started"] .hotspot-label,
     model-viewer[ar-status="session-started"] .line-container,
     model-viewer[ar-status="session-started"] .custom-ar-button,
-    .viewer-container:has(model-viewer[ar-status="session-started"]) .nav-side-btn {
+    .nav-side-btn.ar-hide {
       display: none !important;
       pointer-events: none !important;
     }
@@ -301,6 +301,31 @@
     const playBtns = document.querySelectorAll('.animation-overlay-btn');
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
+
+    // Gerenciamento de Visibilidade na RA (Garante que hotspots não sejam implementados)
+    viewers.forEach(v => {
+      v.addEventListener('ar-status', (event) => {
+        const isAR = event.detail.status === 'session-started';
+        const hotspots = v.querySelectorAll('.hotspot-point');
+        const labels = v.querySelectorAll('.hotspot-label');
+        const lines = v.querySelectorAll('.line-container');
+        
+        // Esconde botões de navegação lateral
+        prevBtn.classList.toggle('ar-hide', isAR);
+        nextBtn.classList.toggle('ar-hide', isAR);
+
+        hotspots.forEach(h => {
+          if (isAR) {
+            h.dataset.oldSlot = h.getAttribute('slot');
+            h.removeAttribute('slot'); // Remove a "implementação" do hotspot para o motor de RA
+            h.style.display = 'none';
+          } else {
+            if (h.dataset.oldSlot) h.setAttribute('slot', h.dataset.oldSlot);
+            h.style.display = '';
+          }
+        });
+      });
+    });
     function updateUI() {
       viewers.forEach((v, i) => v.classList.toggle('active', i === currentIndex));
       prevBtn.style.display = currentIndex === 0 ? 'none' : 'flex';
