@@ -23,6 +23,7 @@
       position: relative;
       background-color: #e0e0e0;
     }
+    /* Garante que o viewer ativo seja exibido */
     model-viewer {
       width: 100%;
       height: 100%;
@@ -35,32 +36,6 @@
     model-viewer.active {
       opacity: 1;
       pointer-events: auto;
-    }
-    /* Esconde o botão AR padrão */
-    model-viewer::part(default-ar-button) {
-      display: none !important;
-    }
-    /* Botão Ver em RA reposicionado para canto SUPERIOR direito */
-    .custom-ar-button {
-      position: absolute;
-      top: 20px; /* Alterado de bottom para top */
-      right: 20px;
-      padding: 12px 20px;
-      background: white;
-      color: #333;
-      border: none;
-      border-radius: 8px;
-      font-weight: bold;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-      z-index: 1000;
-    }
-    /* Garante que o botão AR só apareça no viewer ativo */
-    model-viewer:not(.active) .custom-ar-button {
-      display: none !important;
     }
     /* Navegação lateral */
     .nav-side-btn {
@@ -173,16 +148,6 @@
       overflow: visible !important;
     }
 
-    /* Esconde totalmente os hotspots, anotações e botões de interface desnecessários durante a Realidade Aumentada (RA) */
-    model-viewer[ar-status="session-started"] .hotspot-point,
-    model-viewer[ar-status="session-started"] .hotspot-label,
-    model-viewer[ar-status="session-started"] .line-container,
-    model-viewer[ar-status="session-started"] .custom-ar-button,
-    .nav-side-btn.ar-hide {
-      display: none !important;
-      pointer-events: none !important;
-    }
-
     model-viewer:not(.active) .hotspot-point,
     model-viewer:not(.active) .hotspot-label,
     model-viewer:not(.active) .line-container {
@@ -196,60 +161,24 @@
     <button id="prev-btn" class="nav-side-btn" style="display: none;">←</button>
     <button id="next-btn" class="nav-side-btn">→</button>
     <!-- Model Viewers -->
-    <model-viewer id="mv-0" src="modelos/01.glb" ios-src="modelos/01.usdz" ar ar-modes="webxr scene-viewer quick-look"
+    <model-viewer id="mv-0" src="modelos/01.glb" ios-src="modelos/01.usdz"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="none" class="active">
-      <button slot="ar-button" class="custom-ar-button">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
-          <path d="M17 3H15V5H17C18.1046 5 19 5.89543 19 7V9H21V7C21 4.79086 19.2091 3 17 3Z" fill="currentColor"/>
-          <path d="M21 17V15H19V17C19 18.1046 18.1046 19 17 19H15V21H17C19.2091 21 21 19.2091 21 17Z" fill="currentColor"/>
-          <path d="M7 21H9V19H7C5.89543 19 5 18.1046 5 17V15H3V17C3 19.2091 4.79086 21 7 21Z" fill="currentColor"/>
-        </svg>
-        Ver em RA
-      </button>
       <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
-    <model-viewer id="mv-1" src="modelos/02.glb" ios-src="modelos/02.usdz" ar ar-modes="webxr scene-viewer quick-look"
+    <model-viewer id="mv-1" src="modelos/02.glb" ios-src="modelos/02.usdz"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="none">
-      <button slot="ar-button" class="custom-ar-button">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
-          <path d="M17 3H15V5H17C18.1046 5 19 5.89543 19 7V9H21V7C21 4.79086 19.2091 3 17 3Z" fill="currentColor"/>
-          <path d="M21 17V15H19V17C19 18.1046 18.1046 19 17 19H15V21H17C19.2091 21 21 19.2091 21 17Z" fill="currentColor"/>
-          <path d="M7 21H9V19H7C5.89543 19 5 18.1046 5 17V15H3V17C3 19.2091 4.79086 21 7 21Z" fill="currentColor"/>
-        </svg>
-        Ver em RA
-      </button>
       <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
-    <model-viewer id="mv-2" src="modelos/03.glb" ios-src="modelos/03.usdz" ar ar-modes="webxr scene-viewer quick-look"
+    <model-viewer id="mv-2" src="modelos/03.glb" ios-src="modelos/03.usdz"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="none">
-      <button slot="ar-button" class="custom-ar-button">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
-          <path d="M17 3H15V5H17C18.1046 5 19 5.89543 19 7V9H21V7C21 4.79086 19.2091 3 17 3Z" fill="currentColor"/>
-          <path d="M21 17V15H19V17C19 18.1046 18.1046 19 17 19H15V21H17C19.2091 21 21 19.2091 21 17Z" fill="currentColor"/>
-          <path d="M7 21H9V19H7C5.89543 19 5 18.1046 5 17V15H3V17C3 19.2091 4.79086 21 7 21Z" fill="currentColor"/>
-        </svg>
-        Ver em RA
-      </button>
       <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
-    <model-viewer id="mv-3" src="modelos/04.glb" ios-src="modelos/04.usdz" ar ar-modes="webxr scene-viewer quick-look"
+    <model-viewer id="mv-3" src="modelos/04.glb" ios-src="modelos/04.usdz"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="none">
-      <button slot="ar-button" class="custom-ar-button">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3 7C3 4.79086 4.79086 3 7 3H9V5H7C5.89543 5 5 5.89543 5 7V9H3V7Z" fill="currentColor"/>
-          <path d="M17 3H15V5H17C18.1046 5 19 5.89543 19 7V9H21V7C21 4.79086 19.2091 3 17 3Z" fill="currentColor"/>
-          <path d="M21 17V15H19V17C19 18.1046 18.1046 19 17 19H15V21H17C19.2091 21 21 19.2091 21 17Z" fill="currentColor"/>
-          <path d="M7 21H9V19H7C5.89543 19 5 18.1046 5 17V15H3V17C3 19.2091 4.79086 21 7 21Z" fill="currentColor"/>
-        </svg>
-        Ver em RA
-      </button>
       <button class="animation-overlay-btn">Pendurar</button>
 
       <!-- Hotspots Pontos -->
@@ -302,30 +231,6 @@
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
 
-    // Gerenciamento de Visibilidade na RA (Garante que hotspots não sejam implementados)
-    viewers.forEach(v => {
-      v.addEventListener('ar-status', (event) => {
-        const isAR = event.detail.status === 'session-started';
-        const hotspots = v.querySelectorAll('.hotspot-point');
-        const labels = v.querySelectorAll('.hotspot-label');
-        const lines = v.querySelectorAll('.line-container');
-        
-        // Esconde botões de navegação lateral
-        prevBtn.classList.toggle('ar-hide', isAR);
-        nextBtn.classList.toggle('ar-hide', isAR);
-
-        hotspots.forEach(h => {
-          if (isAR) {
-            h.dataset.oldSlot = h.getAttribute('slot');
-            h.removeAttribute('slot'); // Remove a "implementação" do hotspot para o motor de RA
-            h.style.display = 'none';
-          } else {
-            if (h.dataset.oldSlot) h.setAttribute('slot', h.dataset.oldSlot);
-            h.style.display = '';
-          }
-        });
-      });
-    });
     function updateUI() {
       viewers.forEach((v, i) => v.classList.toggle('active', i === currentIndex));
       prevBtn.style.display = currentIndex === 0 ? 'none' : 'flex';
@@ -340,9 +245,6 @@
     viewers.forEach((v, i) => {
       v.addEventListener('camera-change', () => {
         if (i !== currentIndex) return;
-
-        // Se estiver em modo RA, desativa a sincronização para evitar conflitos de processamento e liberar o touch
-        if (v.getAttribute('ar-status') === 'session-started') return;
 
         const orbit = v.getCameraOrbit().toString();
         const target = v.getCameraTarget().toString();
