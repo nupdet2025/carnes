@@ -23,6 +23,21 @@
       position: relative;
       background-color: #e0e0e0;
     }
+    /* Layout Base do Visualizador 3D */
+    model-viewer {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0; left: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    model-viewer.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
     /* Estilo do novo botão de Realidade Aumentada (Topo Direito) */
     .custom-ar-button {
       position: absolute;
