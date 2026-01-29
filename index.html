@@ -23,19 +23,56 @@
       position: relative;
       background-color: #e0e0e0;
     }
-    /* Garante que o viewer ativo seja exibido */
-    model-viewer {
-      width: 100%;
-      height: 100%;
+    /* Estilo do novo botão de Realidade Aumentada (Topo Direito) */
+    .custom-ar-button {
       position: absolute;
-      top: 0; left: 0;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
+      top: 20px;
+      right: 20px;
+      padding: 14px 24px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      box-shadow: 0 8px 20px rgba(0,123,255,0.3);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      z-index: 2000;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
-    model-viewer.active {
-      opacity: 1;
-      pointer-events: auto;
+    .custom-ar-button:active { transform: scale(0.95); box-shadow: 0 4px 10px rgba(0,123,255,0.2); }
+    
+    /* Esconde o botão AR padrão do componente */
+    model-viewer::part(default-ar-button) {
+      display: none !important;
+    }
+
+    /* Oculta o botão se o viewer não for o ativo */
+    model-viewer:not(.active) .custom-ar-button {
+      display: none !important;
+    }
+
+    /* Regras de Visibilidade durante a Sessão de RA */
+    model-viewer[ar-status="session-started"] .hotspot-point,
+    model-viewer[ar-status="session-started"] .hotspot-label,
+    model-viewer[ar-status="session-started"] .line-container,
+    model-viewer[ar-status="session-started"] .custom-ar-button,
+    .viewer-container:has(model-viewer[ar-status="session-started"]) .nav-side-btn {
+      display: none !important;
+      pointer-events: none !important;
+    }
+
+    /* Garante que o botão de animação flutue sobre a RA */
+    model-viewer[ar-status="session-started"] .animation-overlay-btn {
+      display: block !important;
+      z-index: 3000;
+      bottom: 50px;
     }
     /* Navegação lateral */
     .nav-side-btn {
@@ -160,25 +197,72 @@
     <!-- Navegação lateral -->
     <button id="prev-btn" class="nav-side-btn" style="display: none;">←</button>
     <button id="next-btn" class="nav-side-btn">→</button>
-    <!-- Model Viewers -->
+    <!-- Model Viewers com RA Baseada em WebXR (Android) e Quick Look (iOS) -->
     <model-viewer id="mv-0" src="modelos/01.glb" ios-src="modelos/01.usdz"
+      ar ar-modes="webxr quick-look scene-viewer" ar-scale="auto" ar-placement="floor"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="none" class="active">
+      <button slot="ar-button" class="custom-ar-button">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M7 2H4C2.89543 2 2 2.89543 2 4V7H4V4H7V2Z" fill="currentColor"/>
+          <path d="M17 2H20C21.1046 2 22 2.89543 22 4V7H20V4H17V2Z" fill="currentColor"/>
+          <path d="M7 22H4C2.89543 22 2 21.1046 2 20V17H4V20H7V22Z" fill="currentColor"/>
+          <path d="M17 22H20C21.1046 22 22 21.1046 22 20V17H20V20H17V22Z" fill="currentColor"/>
+          <path d="M12 7L7 12L12 17L17 12L12 7Z" fill="currentColor"/>
+        </svg>
+        Realidade Aumentada
+      </button>
       <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
+
     <model-viewer id="mv-1" src="modelos/02.glb" ios-src="modelos/02.usdz"
+      ar ar-modes="webxr quick-look scene-viewer" ar-scale="auto" ar-placement="floor"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="none">
+      <button slot="ar-button" class="custom-ar-button">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M7 2H4C2.89543 2 2 2.89543 2 4V7H4V4H7V2Z" fill="currentColor"/>
+          <path d="M17 2H20C21.1046 2 22 2.89543 22 4V7H20V4H17V2Z" fill="currentColor"/>
+          <path d="M7 22H4C2.89543 22 2 21.1046 2 20V17H4V20H7V22Z" fill="currentColor"/>
+          <path d="M17 22H20C21.1046 22 22 21.1046 22 20V17H20V20H17V22Z" fill="currentColor"/>
+          <path d="M12 7L7 12L12 17L17 12L12 7Z" fill="currentColor"/>
+        </svg>
+        Realidade Aumentada
+      </button>
       <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
+
     <model-viewer id="mv-2" src="modelos/03.glb" ios-src="modelos/03.usdz"
+      ar ar-modes="webxr quick-look scene-viewer" ar-scale="auto" ar-placement="floor"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="none">
+      <button slot="ar-button" class="custom-ar-button">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M7 2H4C2.89543 2 2 2.89543 2 4V7H4V4H7V2Z" fill="currentColor"/>
+          <path d="M17 2H20C21.1046 2 22 2.89543 22 4V7H20V4H17V2Z" fill="currentColor"/>
+          <path d="M7 22H4C2.89543 22 2 21.1046 2 20V17H4V20H7V22Z" fill="currentColor"/>
+          <path d="M17 22H20C21.1046 22 22 21.1046 22 20V17H20V20H17V22Z" fill="currentColor"/>
+          <path d="M12 7L7 12L12 17L17 12L12 7Z" fill="currentColor"/>
+        </svg>
+        Realidade Aumentada
+      </button>
       <button class="animation-overlay-btn">Pendurar</button>
     </model-viewer>
+
     <model-viewer id="mv-3" src="modelos/04.glb" ios-src="modelos/04.usdz"
+      ar ar-modes="webxr quick-look scene-viewer" ar-scale="auto" ar-placement="floor"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="none">
+      <button slot="ar-button" class="custom-ar-button">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M7 2H4C2.89543 2 2 2.89543 2 4V7H4V4H7V2Z" fill="currentColor"/>
+          <path d="M17 2H20C21.1046 2 22 2.89543 22 4V7H20V4H17V2Z" fill="currentColor"/>
+          <path d="M7 22H4C2.89543 22 2 21.1046 2 20V17H4V20H7V22Z" fill="currentColor"/>
+          <path d="M17 22H20C21.1046 22 22 21.1046 22 20V17H20V20H17V22Z" fill="currentColor"/>
+          <path d="M12 7L7 12L12 17L17 12L12 7Z" fill="currentColor"/>
+        </svg>
+        Realidade Aumentada
+      </button>
       <button class="animation-overlay-btn">Pendurar</button>
 
       <!-- Hotspots Pontos -->
@@ -245,6 +329,9 @@
     viewers.forEach((v, i) => {
       v.addEventListener('camera-change', () => {
         if (i !== currentIndex) return;
+
+        // Desativa sincronização se estiver em RA para evitar lag e liberar gestos
+        if (v.getAttribute('ar-status') === 'session-started') return;
 
         const orbit = v.getCameraOrbit().toString();
         const target = v.getCameraTarget().toString();
