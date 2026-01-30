@@ -83,11 +83,21 @@
       pointer-events: none !important;
     }
 
-    /* Garante que o botão de animação flutue sobre a RA */
+    /* Garante que o botão de animação flutue sobre a RA (Apenas WebXR suporta isso) */
     model-viewer[ar-status="session-started"] .animation-overlay-btn {
       display: block !important;
       z-index: 3000;
       bottom: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      position: fixed; /* Fixa na tela durante a RA */
+    }
+
+    /* Remove prompts nativos e botões extras do canto inferior */
+    model-viewer::part(default-ar-button),
+    model-viewer::part(ar-prompt),
+    model-viewer::part(ar-button) {
+      display: none !important;
     }
     /* Navegação lateral */
     .nav-side-btn {
@@ -214,7 +224,7 @@
     <button id="next-btn" class="nav-side-btn">→</button>
     <!-- Model Viewers com RA Baseada em WebXR (Android) e Quick Look (iOS) -->
     <model-viewer id="mv-0" src="modelos/01.glb" ios-src="modelos/01.usdz"
-      ar ar-modes="scene-viewer quick-look webxr" ar-scale="auto" ar-placement="floor"
+      ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto" ar-placement="floor"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y" class="active">
       <button slot="ar-button" class="custom-ar-button">
@@ -231,7 +241,7 @@
     </model-viewer>
 
     <model-viewer id="mv-1" src="modelos/02.glb" ios-src="modelos/02.usdz"
-      ar ar-modes="scene-viewer quick-look webxr" ar-scale="auto" ar-placement="floor"
+      ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto" ar-placement="floor"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y">
       <button slot="ar-button" class="custom-ar-button">
@@ -248,7 +258,7 @@
     </model-viewer>
 
     <model-viewer id="mv-2" src="modelos/03.glb" ios-src="modelos/03.usdz"
-      ar ar-modes="scene-viewer quick-look webxr" ar-scale="auto" ar-placement="floor"
+      ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto" ar-placement="floor"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y">
       <button slot="ar-button" class="custom-ar-button">
@@ -265,7 +275,7 @@
     </model-viewer>
 
     <model-viewer id="mv-3" src="modelos/04.glb" ios-src="modelos/04.usdz"
-      ar ar-modes="scene-viewer quick-look webxr" ar-scale="auto" ar-placement="floor"
+      ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto" ar-placement="floor"
       camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" touch-action="pan-y">
       <button slot="ar-button" class="custom-ar-button">
