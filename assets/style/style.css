@@ -242,13 +242,12 @@ body {
 @media (max-width: 768px) {
     .text-section, .iframe-section { padding: 4em 5%; }
     .selo1, .selo2 { 
-        width: 20vw; 
+        width: 15vw; 
         min-width: 80px; 
         right: 5%;
     }
     #meu-iframe { height: 450px; }
     #toggle-fullscreen {
-
     bottom: 4px;
     right: 20px;
     padding: 10px 15px;

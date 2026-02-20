@@ -15,12 +15,12 @@
       align-items: center;
       font-family: Arial, sans-serif;
       background-color: #f0f0f0;
-      overflow: hidden; /* Evita scroll desnecessário no mobile */
+      overflow: hidden;
     }
 
     .viewer-container {
       width: 100%;
-      height: 80%; /* Mantido conforme seu original */
+      height: 80%;
       position: relative;
       background-color: #e0e0e0;
     }
@@ -43,7 +43,10 @@
 
     /* Ajuste para o botão nativo de AR do Google */
     model-viewer::part(ar-button) {
-      bottom: 80px; /* Sobe o botão para não sobrepor o botão "Pendurar" */
+      display: flex !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      bottom: 80px;
       background-color: white;
       border-radius: 50%;
       border: 2px solid #007bff;
@@ -115,52 +118,70 @@
       background-color: #0056b3;
     }
 
-    .prev-btn { left: 20px; }
-    .next-btn { right: 20px; }
+    .prev-btn {
+      left: 20px;
+    }
+
+    .next-btn {
+      right: 20px;
+    }
   </style>
 </head>
 
 <body>
   <div class="viewer-container">
-    <model-viewer id="mv-0" src="modelos/01.glb" 
-      ar ar-modes="webxr scene-viewer quick-look" ar-placement="floor"
-      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
-      animation-loop="false" class="active">
+    <model-viewer id="mv-0" src="modelos/01.glb" ar ar-modes="webxr scene-viewer quick-look" ar-placement="floor"
+      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false" class="active">
       <div class="controls-container">
-        <button class="nav-btn prev-btn" style="display: none;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg></button>
-        <button class="nav-btn next-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg></button>
+        <button class="nav-btn prev-btn" style="display: none;"><svg width="20" height="20" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m15 18-6-6 6-6" />
+          </svg></button>
+        <button class="nav-btn next-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m9 18 6-6-6-6" />
+          </svg></button>
         <button class="action-btn">Pendurar</button>
       </div>
     </model-viewer>
 
-    <model-viewer id="mv-1" src="modelos/02.glb" 
-      ar ar-modes="webxr scene-viewer quick-look" ar-placement="floor"
-      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
-      animation-loop="false">
+    <model-viewer id="mv-1" src="modelos/02.glb" ar ar-modes="webxr scene-viewer quick-look" ar-placement="floor"
+      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
       <div class="controls-container">
-        <button class="nav-btn prev-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
-        <button class="nav-btn next-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+        <button class="nav-btn prev-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m15 18-6-6 6-6" />
+          </svg></button>
+        <button class="nav-btn next-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m9 18 6-6-6-6" />
+          </svg></button>
         <button class="action-btn">Pendurar</button>
       </div>
     </model-viewer>
 
-    <model-viewer id="mv-2" src="modelos/03.glb" 
-      ar ar-modes="webxr scene-viewer quick-look" ar-placement="floor"
-      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
-      animation-loop="false">
+    <model-viewer id="mv-2" src="modelos/03.glb" ar ar-modes="webxr scene-viewer quick-look" ar-placement="floor"
+      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
       <div class="controls-container">
-        <button class="nav-btn prev-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
-        <button class="nav-btn next-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+        <button class="nav-btn prev-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m15 18-6-6 6-6" />
+          </svg></button>
+        <button class="nav-btn next-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m9 18 6-6-6-6" />
+          </svg></button>
         <button class="action-btn">Pendurar</button>
       </div>
     </model-viewer>
 
-    <model-viewer id="mv-3" src="modelos/04.glb" 
-      ar ar-modes="webxr scene-viewer quick-look" ar-placement="floor"
-      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
-      animation-loop="false">
+    <model-viewer id="mv-3" src="modelos/04.glb" ar ar-modes="webxr scene-viewer quick-look" ar-placement="floor"
+      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m" animation-loop="false">
       <div class="controls-container">
-        <button class="nav-btn prev-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+        <button class="nav-btn prev-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m15 18-6-6 6-6" />
+          </svg></button>
         <button class="nav-btn next-btn" style="display: none;">→</button>
         <button class="action-btn">Pendurar</button>
       </div>
@@ -270,4 +291,5 @@
     updateUI();
   </script>
 </body>
+
 </html>
