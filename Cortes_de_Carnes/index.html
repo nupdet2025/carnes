@@ -15,11 +15,12 @@
       align-items: center;
       font-family: Arial, sans-serif;
       background-color: #f0f0f0;
+      overflow: hidden; /* Evita scroll desnecessário no mobile */
     }
 
     .viewer-container {
       width: 100%;
-      height: 80%;
+      height: 80%; /* Mantido conforme seu original */
       position: relative;
       background-color: #e0e0e0;
     }
@@ -40,7 +41,14 @@
       pointer-events: auto;
     }
 
-    /* Controls Container */
+    /* Ajuste para o botão nativo de AR do Google */
+    model-viewer::part(ar-button) {
+      bottom: 80px; /* Sobe o botão para não sobrepor o botão "Pendurar" */
+      background-color: white;
+      border-radius: 50%;
+      border: 2px solid #007bff;
+    }
+
     .controls-container {
       position: absolute;
       top: 0;
@@ -51,7 +59,6 @@
       z-index: 1000;
     }
 
-    /* Buttons must have pointer-events auto to be clickable */
     .action-btn {
       position: absolute;
       bottom: 20px;
@@ -108,70 +115,52 @@
       background-color: #0056b3;
     }
 
-    .prev-btn {
-      left: 20px;
-    }
-
-    .next-btn {
-      right: 20px;
-    }
+    .prev-btn { left: 20px; }
+    .next-btn { right: 20px; }
   </style>
 </head>
 
 <body>
   <div class="viewer-container">
-    <!-- Viewer 0 -->
-    <model-viewer id="mv-0" src="modelos/01.glb" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
+    <model-viewer id="mv-0" src="modelos/01.glb" 
+      ar ar-modes="webxr scene-viewer quick-look" ar-placement="floor"
+      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false" class="active">
       <div class="controls-container">
-        <button class="nav-btn prev-btn" style="display: none;"><svg width="20" height="20" viewBox="0 0 24 24"
-            fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="m15 18-6-6 6-6" />
-          </svg></button>
-        <button class="nav-btn next-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="m9 18 6-6-6-6" />
-          </svg></button>
-        <button class="action-btn">Pendurar</button>
-
-      </div>
-    </model-viewer>
-
-    <!-- Viewer 1 -->
-    <model-viewer id="mv-1" src="modelos/02.glb" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
-      animation-loop="false">
-      <div class="controls-container">
-        <button class="nav-btn prev-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-    <path d="m15 18-6-6 6-6"/>
-  </svg></button>
-        <button class="nav-btn next-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-  <path d="m9 18 6-6-6-6"/>
-</svg></button>
+        <button class="nav-btn prev-btn" style="display: none;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg></button>
+        <button class="nav-btn next-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg></button>
         <button class="action-btn">Pendurar</button>
       </div>
     </model-viewer>
 
-    <!-- Viewer 2 -->
-    <model-viewer id="mv-2" src="modelos/03.glb" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
+    <model-viewer id="mv-1" src="modelos/02.glb" 
+      ar ar-modes="webxr scene-viewer quick-look" ar-placement="floor"
+      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false">
       <div class="controls-container">
-        <button class="nav-btn prev-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-    <path d="m15 18-6-6 6-6"/>
-  </svg></button>
-        <button class="nav-btn next-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-  <path d="m9 18 6-6-6-6"/>
-</svg></button>
+        <button class="nav-btn prev-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+        <button class="nav-btn next-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
         <button class="action-btn">Pendurar</button>
       </div>
     </model-viewer>
 
-    <!-- Viewer 3 -->
-    <model-viewer id="mv-3" src="modelos/04.glb" camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
+    <model-viewer id="mv-2" src="modelos/03.glb" 
+      ar ar-modes="webxr scene-viewer quick-look" ar-placement="floor"
+      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
       animation-loop="false">
       <div class="controls-container">
-        <button class="nav-btn prev-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-    <path d="m15 18-6-6 6-6"/>
-  </svg></button>
+        <button class="nav-btn prev-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+        <button class="nav-btn next-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+        <button class="action-btn">Pendurar</button>
+      </div>
+    </model-viewer>
+
+    <model-viewer id="mv-3" src="modelos/04.glb" 
+      ar ar-modes="webxr scene-viewer quick-look" ar-placement="floor"
+      camera-controls shadow-intensity="1" camera-orbit="45deg 55deg 2.5m"
+      animation-loop="false">
+      <div class="controls-container">
+        <button class="nav-btn prev-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
         <button class="nav-btn next-btn" style="display: none;">→</button>
         <button class="action-btn">Pendurar</button>
       </div>
@@ -187,16 +176,13 @@
       document.getElementById('mv-3')
     ];
     let currentIndex = 0;
-    // Animation state must be tracked globally for the active model
     let isAtEnd = false;
 
-    // Get ALL instances of buttons from DOM
     const playBtns = document.querySelectorAll('.action-btn');
     const prevBtns = document.querySelectorAll('.prev-btn');
     const nextBtns = document.querySelectorAll('.next-btn');
 
     function updateUI() {
-      // 2D Visibility Toggle (Standard Multi-Viewer)
       viewers.forEach((v, i) => {
         if (i === currentIndex) {
           v.classList.add('active');
@@ -205,7 +191,6 @@
         }
       });
 
-      // Update Text/State on ALL duplicate buttons
       playBtns.forEach(btn => {
         btn.disabled = false;
         if (isAtEnd) {
@@ -217,17 +202,14 @@
         }
       });
 
-      // Update Visibility of Navigation arrows on ALL duplicate sets
       prevBtns.forEach(btn => btn.style.display = currentIndex === 0 ? 'none' : 'flex');
       nextBtns.forEach(btn => btn.style.display = currentIndex === viewers.length - 1 ? 'none' : 'flex');
     }
 
-    // BROADCAST CAMERA ROTATION
     viewers.forEach((v, i) => {
       v.addEventListener('camera-change', (event) => {
         if (i !== currentIndex) return;
         const orbit = v.getCameraOrbit().toString();
-
         viewers.forEach((otherViewer, otherIndex) => {
           if (otherIndex !== currentIndex) {
             otherViewer.cameraOrbit = orbit;
@@ -236,37 +218,27 @@
       });
     });
 
-    // PURE 3D NAVIGATION HANDLER
     function switchModel(newIndex) {
       if (newIndex < 0 || newIndex >= viewers.length) return;
-
-      // 2D MODE ONLY: Toggle Viewer Visibility
       currentIndex = newIndex;
-      // PERSISTENCE: We keep isAtEnd logic as is (User Requirement)
       updateUI();
     }
 
-    // STRICT GLOBAL SYNC - PLAY/RESET HANDLER
     playBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         if (btn.disabled) return;
-        // Lock all buttons to prevent race conditions
         playBtns.forEach(b => b.disabled = true);
 
         const activeViewer = viewers[currentIndex];
 
         if (!isAtEnd) {
-          // COMMAND: PLAY ALL
-          // Synchronize all 4 models to Play Once
           viewers.forEach(v => {
             v.currentTime = 0;
             v.timeScale = 1;
             v.play({ repetitions: 1 });
           });
 
-          // Monitor only the active viewer to determine when animation ends
           const checkEnd = () => {
-            // Check if animation finished (approximate duration)
             if (activeViewer.duration > 0 && activeViewer.currentTime >= activeViewer.duration - 0.05) {
               isAtEnd = true;
               updateUI();
@@ -277,8 +249,6 @@
           checkEnd();
 
         } else {
-          // COMMAND: RESET ALL
-          // Synchronize all 4 models to Reset to Frame 1 (Time 0)
           viewers.forEach(v => {
             v.pause();
             v.currentTime = 0;
@@ -289,7 +259,6 @@
       });
     });
 
-    // NAVIGATION CLICKS
     prevBtns.forEach(btn => {
       btn.addEventListener('click', () => switchModel(currentIndex - 1));
     });
@@ -298,9 +267,7 @@
       btn.addEventListener('click', () => switchModel(currentIndex + 1));
     });
 
-    // Initial State
     updateUI();
   </script>
 </body>
-
 </html>
